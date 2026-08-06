@@ -3,15 +3,11 @@ let blocks = [];
 // Inventary object
 let inventary;
 let items = [];
-changedBlocks = [];
+let changedBlocks = [];
 let clouds = [];
 
 var player;
-// Horizontal velocity and acceleration
-var H_vel = 3,
-  H_acc = 0;
 
-var blockW = 20; // Block width
 var GRAVITY; // Gravity vector
 // Hand global variables and player's center position
 var handPos, handX, handY, plyrPos;
@@ -47,8 +43,7 @@ function preload() {
 }
 
 function setup() {
-  var scale = 0.4;
-  createCanvas(2560 * scale, 1440 * scale);
+  createCanvas(W * SCALE, H * SCALE);
 
   randomSeed(42);
   noiseSeed(42);
@@ -56,19 +51,22 @@ function setup() {
   noStroke();
   textFont(font);
   GRAVITY = createVector(0, 30);
-  // g = createVector(0, 0);
 
-  // Block coordinates where they start to generate
+  // Block indexes where they start to generate the world
   stX = 300; // 300
   stY = 50; // 50
 
-  player = new Player((stX / 2) * blockW + 2, -20);
+  // stX = random(20, WORLD_W * BLOCK_W);
+  // stX = round((WORLD_W * BLOCK_W) / 2);
+  stX = width / 2;
+
+  player = new Player(stX, -20);
 
   // Creating the inventary
   inventary = new Inventary(6);
 
   // Creating the clouds
-  for (var j = 0; j < 6; j++) {
+  for (var j = 0; j < CLOUDS_COUNT; j++) {
     var img = n1;
     if (random(1) > 0.5) {
       img = n2;
@@ -99,7 +97,7 @@ function setup() {
       if (!initialized) {
         // Initialize game
         createWorld(stX, stY);
-        handFunction(); // REFACTOR: Can be deleted?
+        drawHand(); // REFACTOR: Can be deleted?
         initialized = true;
       }
     });
@@ -165,9 +163,11 @@ function drawGame() {
 
   push();
 
-  // (i, j) indexes of the player
-  var playerI = round((player.pos.x - width / 2) / blockW);
-  var playerJ = round((player.pos.y - height / 2) / blockW);
+  // (i, j) indexes of the player minus the center of the world
+  // It's used to as the starting coordinates of the world
+  // They start at (playerI - trX, playerJ - trY)
+  var playerI = round(player.pos.x / BLOCK_W);
+  var playerJ = round(player.pos.y / BLOCK_W);
 
   // Translate coordinates to draw blocks
   // Blocks are drawn at: player.pos +- width/2, so all the canvas is filled
@@ -184,15 +184,24 @@ function drawGame() {
   pop();
 
   translate(-trX, -trY);
+  // Extra blocks at both sides, so the screen is fully drawn
+  var extraBlocks = 1;
   // Number of blocks drawn on each axis
-  chunkW = round(width / blockW);
-  chunkH = round(height / blockW);
-  for (var i = playerI - 1; i < min(stX, 26 + playerI + 1); i++) {
-    for (var j = playerJ - 1; j < min(stY, 21 + playerJ + 1); j++) {
+  chunkW = round(width / BLOCK_W) + extraBlocks;
+  chunkH = round(height / BLOCK_W) + extraBlocks;
+
+  // for (var i = playerI - 1; i < min(stX, 26 + playerI + 1); i++) {
+  //   for (var j = playerJ - 1; j < min(stY, 21 + playerJ + 1); j++) {
+  for (var i = 0; i < blocks.length; i++) {
+    for (var j = 0; j < blocks[i].length; j++) {
+      // print("player", playerI, playerJ);
+      // print(playerI + i, playerJ + j);
+      // var b = blocks[playerI + i][playerJ + j];
       var b = blocks[i][j];
+      // print(i, j, b.x, b.y);
       if (b.type != null) {
         imageMode(CORNER);
-        image(b.type, b.x, b.y, blockW, blockW);
+        image(b.type, b.x, b.y, BLOCK_W, BLOCK_W);
       }
     }
   }
@@ -204,7 +213,7 @@ function drawGame() {
   player.update();
   player.show();
 
-  handFunction();
+  drawHand();
 
   pop();
 
@@ -304,34 +313,37 @@ function image2name(img) {
  * Constrains the player's position and draws the World's red line limits
  */
 function worldLimits() {
+  var off = BLOCK_W * 3;
   player.pos.x = constrain(
     player.pos.x,
-    blockW * 3,
-    stX * blockW - blockW * 3 - player.w,
+    off,
+    (WORLD_W - 3) * BLOCK_W - player.w,
   );
   player.pos.y = constrain(
     player.pos.y,
     -100,
-    stY * blockW - blockW * 3 - player.h,
+    (WORLD_H - 3) * BLOCK_W - player.h,
   );
 
-  var off = blockW * 3;
   stroke(255, 0, 0);
-  line(off, -stY * blockW, off, stY * blockW - off); // Left
+  // Left border
+  line(off, -WORLD_H * BLOCK_W, off, WORLD_H * BLOCK_W - off);
+  // Right border
   line(
-    stX * blockW - off,
-    -stY * blockW,
-    stX * blockW - off,
-    stY * blockW - off,
-  ); // Right
-  line(off, stY * blockW - off, stX * blockW - off, stY * blockW - off); // Bottom
+    WORLD_W * BLOCK_W - off,
+    -WORLD_H * BLOCK_W,
+    WORLD_W * BLOCK_W - off,
+    WORLD_H * BLOCK_W - off,
+  );
+  // Bottom border
+  line(off, WORLD_H * BLOCK_W - off, WORLD_W * BLOCK_W - off, WORLD_H * BLOCK_W - off);
   noStroke();
   var n = width / 2 + 50;
   rectMode(CORNER);
   fill(255, 0, 0, 100);
-  rect(off - n, -200, n, stY * blockW - off + 200);
-  rect(stX * blockW - off, -200, n, stY * blockW - off + 200);
-  rect(-n, stY * blockW - off, stX * blockW, 200);
+  rect(off - n, -200, n, WORLD_H * BLOCK_W - off + 200);
+  rect(WORLD_W * BLOCK_W - off, -200, n, WORLD_H * BLOCK_W - off + 200);
+  rect(-n, WORLD_H * BLOCK_W - off, WORLD_W * BLOCK_W, 200);
 }
 
 function keyPressed() {
@@ -347,25 +359,19 @@ function mousePressed() {
     return false;
   }
   if (mode == "game") {
-    let i = handX / blockW,
-      j = handY / blockW;
-    if (blocks[i][j].type != null) {
-      inventary.storeBlock(i, j, blocks[i][j].type);
-    } else {
-      inventary.placeBlock(i, j, blocks[i][j].type);
+    let i = handX / BLOCK_W,
+      j = handY / BLOCK_W;
+    if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
+      if (blocks[i][j].type != null) {
+        inventary.storeBlock(i, j, blocks[i][j].type);
+      } else {
+        inventary.placeBlock(i, j, blocks[i][j].type);
+      }
     }
   }
-} 
-
-/**
- * Adds a 'type' block into the inventary
- * @param {p5.Image} type
- */
-function storeBlock(type) {
-  
 }
 
-function handFunction() {
+function drawHand() {
   // Center position of the player
   plyrPos = createVector(
     player.pos.x + player.w / 2,
@@ -375,50 +381,45 @@ function handFunction() {
   var mouse = createVector(mouseX + trX, mouseY + trY);
   // Vector pointing from the player to the mouse
   handPos = p5.Vector.sub(mouse, plyrPos);
-  handPos.limit(blockW * 1.5);
+  handPos.limit(BLOCK_W * 1.5);
   noFill();
   stroke(255);
   strokeWeight(2);
-  handX = plyrPos.x + handPos.x - ((plyrPos.x + handPos.x) % blockW);
-  handY = plyrPos.y + handPos.y - ((plyrPos.y + handPos.y) % blockW);
-  rect(handX, handY, blockW, blockW);
-
-  if (keyCode == LEFT_ARROW) {
-    let i = handX / blockW,
-      j = handY / blockW;
-    if (blocks[i][j].type != null) {
-      // Break block and store it on the inventary
-      inventary.storeBlock(i, j, blocks[i][j].type);
-    } else {
-      // Build a block and remove it from the inventary
-      inventary.placeBlock(i, j, blocks[i][j].type);
-    }
-  }
+  handX = plyrPos.x + handPos.x - ((plyrPos.x + handPos.x) % BLOCK_W);
+  handY = plyrPos.y + handPos.y - ((plyrPos.y + handPos.y) % BLOCK_W);
+  rect(handX, handY, BLOCK_W, BLOCK_W);
 }
 
-function createWorld(sX, sY) {
-  for (var i = -sX; i < sX; i++) {
+/**
+ * Procedurally generates the world from -sX to +sX and -sY to +sY
+ */
+function createWorld() {
+  // Initializing the 2D array
+  for (var i = 0; i < WORLD_W; i++) {
     blocks[i] = [];
-    for (var j = -sY; j < sY; j++) {
+    for (var j = 0; j < WORLD_H; j++) {
       blocks[i][j] = {
-        x: i * blockW,
-        y: j * blockW,
+        x: i * BLOCK_W,
+        y: j * BLOCK_W,
         type: null,
         s: 0,
       };
     }
   }
-  var max = sY;
-  var noiseScl = 0.1; // soy una caquita
-  for (var i = 0; i < sX; i++) {
+
+  // Trees
+  // REFACTOR
+  var max = WORLD_H;
+  var sX = WORLD_W;
+  var noiseScl = 0.1;
+  for (var i = 0; i < WORLD_W; i++) {
     var start = noise(i * noiseScl);
     start = round(map(start, 0, 1, 13, 16));
 
     var noise1 = noise((5 + i) * noiseScl * 100);
-    // print(noise1);
     if (noise1 >= 0.7) {
-      // 0.6
       var count = 1;
+      // Leaves
       for (var tree = round(random(3, 6)); tree >= 2; tree--) {
         blocks[i][start - 1].type = tr; // Tronco
         blocks[i][start - tree].type = tr; // Tronco
@@ -437,7 +438,8 @@ function createWorld(sX, sY) {
       }
     }
 
-    for (var rnd = start; rnd < max; rnd++) {
+    // Dirt and stone
+    for (var rnd = start; rnd < WORLD_H; rnd++) {
       blocks[i][rnd].type = t; // Tierra
     }
     var n = noise(i * noiseScl);

@@ -1,28 +1,30 @@
 class Player {
   constructor(x, y) {
     this.pos = createVector(x, y);
-    this.w = blockW * 0.8;
-    this.h = blockW * 1.6;
+    this.w = BLOCK_W * 0.8;
+    this.h = BLOCK_W * 1.6;
 
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
     this.dir = "";
     
-    this.i = round(x / blockW);
-    this.j = round(y / blockW);
+    this.i = round(x / BLOCK_W);
+    this.j = round(y / BLOCK_W);
 
     this.bent = false;
     this.wasBent = false;
+
+    this.H_vel = H_VEL;
+    this.H_acc = 0;
   }
 
   show() {
     fill(0);
     noStroke();
     if (!this.bent) {
-      this.w = blockW * 0.8;
-      this.h = blockW * 1.6;
+      this.h = BLOCK_W * 1.6;
     } else {
-      this.h = blockW * 0.9;
+      this.h = BLOCK_W * 0.9;
     }
     rect(this.pos.x, this.pos.y, this.w, this.h);
   }
@@ -30,8 +32,8 @@ class Player {
   canJump() {
     var x = this.pos.x,
       y = this.pos.y;
-    var si = round((x + this.w / 2) / blockW); // Start i
-    var sj = round((y + this.h / 2) / blockW);
+    var si = round((x + this.w / 2) / BLOCK_W); // Start i
+    var sj = round((y + this.h / 2) / BLOCK_W);
     si = max(1, si);
     sj = max(1, sj);
     for (var i = si - 1; i <= si + 1; i++) {
@@ -53,23 +55,24 @@ class Player {
     this.wasBent = this.bent;
     this.bent = false;
 
+    // REFACTOR: Why don't just decrease this.vel instead of this.this.H_acc
     if (this.dir == "right") {
-      this.vel.x = H_acc;
+      this.vel.x = this.H_acc;
     } else {
-      this.vel.x = -H_acc;
+      this.vel.x = -this.H_acc;
     }
     if (keyIsDown(68)) {
       this.dir = "right";
-      this.vel.x = H_vel;
-      H_acc = 2;
+      this.vel.x = this.H_vel;
+      this.H_acc = H_ACC;
     }
     if (keyIsDown(65)) {
       this.dir = "left";
-      this.vel.x = -H_vel;
-      H_acc = 2;
+      this.vel.x = -this.H_vel;
+      this.H_acc = H_ACC;
     }
-    H_acc -= 0.2;
-    if (H_acc < 0) H_acc = 0;
+    this.H_acc -= 0.2;
+    if (this.H_acc < 0) this.H_acc = 0;
 
     if (keyIsDown(16) || keyIsDown(83)) {
       this.bent = true;
@@ -80,13 +83,13 @@ class Player {
         //var jump = createVector(0, -350);
         //this.applyForce(jump);
         //this.acc.y -= 1;
-        this.vel.y -= 10;
+        this.vel.y -= JUMP_VEL;
         this.jump = false;
       }
     }
     // Prevents overlapping when changing from bent to straight
     if (this.wasBent && !this.bent) {
-      this.pos.y -= blockW * 0.8;
+      this.pos.y -= BLOCK_W * 0.8;
       this.vel.y = 0;
     }
 
@@ -100,8 +103,8 @@ class Player {
   }
 
   preventOverlap(x, y) {
-    var si = round((x + this.w / 2) / blockW);
-    var sj = round((y + this.h / 2) / blockW);
+    var si = round((x + this.w / 2) / BLOCK_W);
+    var sj = round((y + this.h / 2) / BLOCK_W);
     si = max(0, si);
     sj = max(0, sj);
     var newX = 0,
@@ -114,13 +117,13 @@ class Player {
           if (x + this.w >= b.x) {
             newX += 2;
           }
-          if (x <= b.x + blockW) {
+          if (x <= b.x + BLOCK_W) {
             newX -= 2;
           }
           if (y + this.h >= b.y) {
             newY += 2;
           }
-          if (y <= b.y + blockW) {
+          if (y <= b.y + BLOCK_W) {
             newY -= 2;
           }
         } // end colliding
@@ -134,8 +137,8 @@ class Player {
   move(a, b) {
     var x = this.pos.x + a;
     var y = this.pos.y + b;
-    var si = round(x / blockW); // Start i
-    var sj = round(y / blockW);
+    var si = round(x / BLOCK_W); // Start i
+    var sj = round(y / BLOCK_W);
     si = max(0, si);
     sj = max(0, sj);
     var newPos = createVector(a, b);
@@ -168,9 +171,9 @@ class Player {
   colliding(x, y, other) {
     return (
       x + this.w >= other.x &&
-      x <= other.x + blockW &&
+      x <= other.x + BLOCK_W &&
       y + this.h >= other.y &&
-      y <= other.y + blockW
+      y <= other.y + BLOCK_W
     );
   }
 }
