@@ -1,0 +1,17 @@
+- Usar PLAY y SETTINGS images como p5.Image y no <image>
+- Refactor: mouse = createVector(mouseX + trX, mouseY + trY) ?
+- Add Items to Inventary.items.types (and refactor names) instead of adding Item.type(?)
+- Block could be a class
+- Check how changedBlocks and storage works (should be called on Inventary.storeBlock and Inventary.placeBlock?)
+
+- Generación procedural ✅
+- Personaje ✅
+- Colliding solo con los que están cerca ✅
+- Pulir generacion (agua, árboles, césped) ✅
+- Pulir personaje ✅
+- Mover terreno (array infinita). Efecto paradax ✅
+- Menu y seed ✅
+- Item.js no sirve??
+- Hand fuera del personaje
+- Césped
+- Agua con físicass
