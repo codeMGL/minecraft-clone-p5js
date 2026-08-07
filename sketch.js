@@ -1,7 +1,7 @@
 // 2D array for the blocks, initialized at createWorld()
 let blocks = [];
-// Inventary object
-let inventary;
+// Inventory object
+let inventory;
 let items = [];
 let changedBlocks = [];
 let clouds = [];
@@ -26,7 +26,7 @@ var mode = "home",
 var seed;
 
 // Image variables
-var t, tc, p, tr, h, font, invImg, n1, n2;
+var t, tc, p, tr, h, font, n1, n2;
 var title, settingsImg, playImg, settingsImg, playImg;
 function preload() {
   t = loadImage("images/Tierra.jpeg");
@@ -34,7 +34,6 @@ function preload() {
   p = loadImage("images/Piedra.jpeg");
   tr = loadImage("images/Tronco.jpeg");
   h = loadImage("images/Hoja.png");
-  invImg = loadImage("images/Inventary.png");
   n1 = loadImage("images/nube1.png");
   n2 = loadImage("images/nube2.png");
   title = loadImage("images/MY-CRAFT.png");
@@ -62,8 +61,8 @@ function setup() {
 
   player = new Player(stX, -20);
 
-  // Creating the inventary
-  inventary = new Inventary(6);
+  // Creating the inventory
+  inventory = new Inventory(6);
 
   // Creating the clouds
   for (var j = 0; j < CLOUDS_COUNT; j++) {
@@ -217,8 +216,8 @@ function drawGame() {
 
   pop();
 
-  // Inventary
-  inventary.draw();
+  // Inventory
+  inventory.draw();
 
   // Drawing FPS
   if (FPScount >= 50) {
@@ -271,9 +270,9 @@ function drawSettings() {
     }
     game += `inv
 `;
-    for (var n = 0; n < inventary.length; n++) {
-      var name = image2name(inventary.items[n].type);
-      game += `${n}${name}${inventary.items[n].count}`;
+    for (var n = 0; n < inventory.length; n++) {
+      var name = image2name(inventory.items[n].type);
+      game += `${n}${name}${inventory.items[n].count}`;
     }
     seed = float(seedInp.value());
     saveGame.html(game);
@@ -348,7 +347,7 @@ function worldLimits() {
 
 function keyPressed() {
   if (keyCode >= 49 && keyCode <= 54) {
-    inventary.selected = keyCode - 49;
+    inventory.selected = keyCode - 49;
   }
   if (keyCode == 72) mode = "home";
 }
@@ -363,9 +362,9 @@ function mousePressed() {
       j = handY / BLOCK_W;
     if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
       if (blocks[i][j].type != null) {
-        inventary.storeBlock(i, j, blocks[i][j].type);
+        inventory.storeBlock(i, j, blocks[i][j].type);
       } else {
-        inventary.placeBlock(i, j, blocks[i][j].type);
+        inventory.placeBlock(i, j, blocks[i][j].type);
       }
     }
   }

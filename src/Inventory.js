@@ -1,8 +1,10 @@
-class Inventary {
+class Inventory {
   constructor(numItems) {
     this.length = numItems;
     this.items = [];
     this.selected = 0; // Selected index
+
+    this.bckColor = color(139);
 
     this.reset();
   }
@@ -24,22 +26,46 @@ class Inventary {
   }
 
   draw() {
-    imageMode(CENTER);
-    image(invImg, width / 2, 20, 175, 32);
-    for (var inv = 0; inv < this.length; inv++) {
-      var item = this.items[inv];
+    imageMode(CORNER);
+    var itemW = 35;
+    var w = this.length * itemW;
+    var h = 30;
+    var strokeW = 2;
+
+    // Big inventory rect
+    fill(this.bckColor);
+    stroke(234);
+    strokeWeight(strokeW);
+    rect((width - w) / 2, h, this.length * itemW, itemW);
+
+    // Individual item squares
+    for (var i = 0; i < this.length; i++) {
+      var item = this.items[i];
+      var x = (width - w) / 2 + itemW * i;
+      
+      // Item image
       if (item.type != undefined) {
-        image(item.type, 185 + inv * 28.5, 20, 20, 20);
+        push();
+        var imgW = itemW - strokeW / 2;
+        var txtSize = 25;
+        image(item.type, x + strokeW / 2, h + strokeW / 2, imgW, imgW);
         noStroke();
         fill(255);
-        textSize(28);
-        text(item.count, 185 + inv * 28.5, 50);
+        textSize(txtSize);
+        text(item.count, x, h + itemW + txtSize);
+        pop();
       }
+
+      // Item white square
+      noFill();
+      rect(x, h, itemW);
     }
+    // Selected item square
+    var x = (width - w) / 2 + itemW * this.selected;
+    stroke("red");
     noFill();
-    stroke(255, 0, 0);
-    strokeWeight(3);
-    rect(173 + this.selected * 28.5, 8, 25, 25);
+    rect(x, h, itemW);
+
   }
 
   storeBlock(i, j, blockType) {
