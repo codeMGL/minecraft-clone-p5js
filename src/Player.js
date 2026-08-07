@@ -1,13 +1,13 @@
 class Player {
   constructor(x, y) {
     this.pos = createVector(x, y);
-    this.w = BLOCK_W * 0.8;
-    this.h = BLOCK_W * 1.6;
+    this.w = PLAYER_W;
+    this.h = PLAYER_H;
 
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
     this.dir = "";
-    
+
     this.i = round(x / BLOCK_W);
     this.j = round(y / BLOCK_W);
 
@@ -18,16 +18,21 @@ class Player {
     this.H_acc = 0;
 
     // Force applied to break a block, [0.0, 1.0]
-    this.breakingForce = 0.5;
+    this.breakingForce = HAND_BREAK_FORCE;
   }
 
   show() {
     fill(0);
     noStroke();
     if (!this.bent) {
-      this.h = BLOCK_W * 1.6;
+      this.h = PLAYER_H;
     } else {
-      this.h = BLOCK_W * 0.9;
+      this.h = PLAYER_H_SNEAK;
+
+      if (this.bent && !this.wasBent) {
+        // Move the player down
+        this.pos.y += BLOCK_W * (1.6 - 0.9);
+      }
     }
     rect(this.pos.x, this.pos.y, this.w, this.h);
   }
@@ -167,7 +172,7 @@ class Player {
 
   breakBlock(i, j) {
     var b = blocks[i][j];
-    b.getDamage(this.breakingForce)
+    b.getDamage(this.breakingForce);
     if (b.life <= 0) {
       // Remove the block and restore block
       b.life = 1.0;
