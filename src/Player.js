@@ -16,6 +16,9 @@ class Player {
 
     this.H_vel = H_VEL;
     this.H_acc = 0;
+
+    // Force applied to break a block, [0.0, 1.0]
+    this.breakingForce = 0.5;
   }
 
   show() {
@@ -160,6 +163,16 @@ class Player {
       }
     }
     this.pos.add(newPos);
+  }
+
+  breakBlock(i, j) {
+    var b = blocks[i][j];
+    b.getDamage(this.breakingForce)
+    if (b.life <= 0) {
+      // Remove the block and restore block
+      b.life = 1.0;
+      inventory.storeBlock(i, j);
+    }
   }
 
   applyForce(force) {

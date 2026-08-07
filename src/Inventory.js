@@ -42,7 +42,7 @@ class Inventory {
     for (var i = 0; i < this.length; i++) {
       var item = this.items[i];
       var x = (width - w) / 2 + itemW * i;
-      
+
       // Item image
       if (item.type != undefined) {
         push();
@@ -65,10 +65,13 @@ class Inventory {
     stroke("red");
     noFill();
     rect(x, h, itemW);
-
   }
 
-  storeBlock(i, j, blockType) {
+  /**
+   * Mark the block as 'null' and store it in the inventory if it's not full
+   */
+  storeBlock(i, j) {
+    var blockType = blocks[i][j].type;
     // REFACTOR: changedBlocks
     var block = {
       i: i,
@@ -103,7 +106,9 @@ class Inventory {
     /////
   }
 
-  placeBlock(i, j, blockType) {
+  placeBlock(i, j) {
+    var blockType = blocks[i][j].type;
+
     if (this.current.type != null) {
       // REFACTOR: Add block to changedBlocks
       var blockB = {

@@ -42,10 +42,16 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(W * SCALE, H * SCALE);
+  const canvas = createCanvas(W * SCALE, H * SCALE);
+  console.clear();
 
   randomSeed(42);
   noiseSeed(42);
+
+  // Disable right-click context menu inside the canvas
+  canvas.elt.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+  });
 
   noStroke();
   textFont(font);
@@ -196,12 +202,8 @@ function drawGame() {
       // print("player", playerI, playerJ);
       // print(playerI + i, playerJ + j);
       // var b = blocks[playerI + i][playerJ + j];
-      var b = blocks[i][j];
-      // print(i, j, b.x, b.y);
-      if (b.type != null) {
-        imageMode(CORNER);
-        image(b.type, b.x, b.y, BLOCK_W, BLOCK_W);
-      }
+      blocks[i][j].draw();
+
     }
   }
 
@@ -335,7 +337,12 @@ function worldLimits() {
     WORLD_H * BLOCK_W - off,
   );
   // Bottom border
-  line(off, WORLD_H * BLOCK_W - off, WORLD_W * BLOCK_W - off, WORLD_H * BLOCK_W - off);
+  line(
+    off,
+    WORLD_H * BLOCK_W - off,
+    WORLD_W * BLOCK_W - off,
+    WORLD_H * BLOCK_W - off,
+  );
   noStroke();
   var n = width / 2 + 50;
   rectMode(CORNER);
@@ -352,19 +359,18 @@ function keyPressed() {
   if (keyCode == 72) mode = "home";
 }
 
-function mousePressed() {
-  if (mouseButton === RIGHT) {
-    console.log("hey");
-    return false;
-  }
+function mousePressed(e) {
   if (mode == "game") {
-    let i = handX / BLOCK_W,
-      j = handY / BLOCK_W;
+    let i = handX / BLOCK_W;
+    let j = handY / BLOCK_W;
+
+    // If the mouse is inside the canvas
     if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
-      if (blocks[i][j].type != null) {
-        inventory.storeBlock(i, j, blocks[i][j].type);
-      } else {
-        inventory.placeBlock(i, j, blocks[i][j].type);
+      if (blocks[i][j].type != null && mouseButton == LEFT) {
+        player.breakBlock(i, j);
+      }
+      if (blocks[i][j].type == null && mouseButton == RIGHT) {
+        inventory.placeBlock(i, j);
       }
     }
   }
@@ -397,12 +403,7 @@ function createWorld() {
   for (var i = 0; i < WORLD_W; i++) {
     blocks[i] = [];
     for (var j = 0; j < WORLD_H; j++) {
-      blocks[i][j] = {
-        x: i * BLOCK_W,
-        y: j * BLOCK_W,
-        type: null,
-        s: 0,
-      };
+      blocks[i][j] = new Block(i * BLOCK_W, j*BLOCK_W);
     }
   }
 
