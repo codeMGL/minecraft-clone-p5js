@@ -1,8 +1,17 @@
-- Usar PLAY y SETTINGS images como p5.Image y no <image>
-- Refactor: mouse = createVector(mouseX + trX, mouseY + trY) ?
-- Add Items to Inventary.items.types (and refactor names) instead of adding Item.type(?)
-- Block could be a class
-- Check how changedBlocks and storage works (should be called on Inventary.storeBlock and Inventary.placeBlock?)
+- [ ] Use dict to store block types: block["tierra"] = tr (block.tierra = tr)
+- [ ] Usar PLAY y SETTINGS images como p5.Image y no <image>
+- [ ] Refactor: mouse = createVector(mouseX + trX, mouseY + trY) ?
+- [ ] Add Items to Inventory.items.types (and refactor names) instead of adding Item.type(?)
+- [x] Block could be a class
+- [ ] Check how changedBlocks and storage works (should be called on Inventory.storeBlock and Inventory.placeBlock?)
+- [-] Add constants to change some variables (CLOUDS_NUM, INVENTARY_SIZE, BLOCK_W, etc)
+- [ ] Just draw the blocks on the canvas (make the world generate from [-100, 100] and set the player in the center)
+- [ ] Fix physics
+- [ ] Fix bending mechanics
+- [ ] Add sprint
+- [ ] Add mouse lateral keys
+- [ ] Make removed blocks float until they're stored (or if storage is full)
+- [ ] Improve visuals on broken blocks
 
 - Generación procedural ✅
 - Personaje ✅
