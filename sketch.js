@@ -386,7 +386,7 @@ function drawHand() {
   var mouse = createVector(mouseX + trX, mouseY + trY);
   // Vector pointing from the player to the mouse
   handPos = p5.Vector.sub(mouse, plyrPos);
-  handPos.limit(BLOCK_W * 1.5);
+  handPos.limit(HAND_MAX_LEN);
   noFill();
   stroke(255);
   strokeWeight(2);

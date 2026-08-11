@@ -3,6 +3,7 @@ class Player {
     this.pos = createVector(x, y);
     this.w = PLAYER_W;
     this.h = PLAYER_H;
+    this.mass = PLAYER_MASS;
 
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
@@ -22,18 +23,15 @@ class Player {
   }
 
   show() {
-    fill(0);
-    noStroke();
+    // Update height if it's bent
     if (!this.bent) {
       this.h = PLAYER_H;
     } else {
       this.h = PLAYER_H_SNEAK;
-
-      if (this.bent && !this.wasBent) {
-        // Move the player down
-        this.pos.y += BLOCK_W * (1.6 - 0.9);
-      }
     }
+
+    fill(0);
+    noStroke();
     rect(this.pos.x, this.pos.y, this.w, this.h);
   }
 
@@ -63,7 +61,10 @@ class Player {
     this.wasBent = this.bent;
     this.bent = false;
 
-    // REFACTOR: Why don't just decrease this.vel instead of this.this.H_acc
+    // REFACTOR: Why don't just decrease this.vel instead of this.H_acc
+    if (keyIsDown(16) || keyIsDown(83)) {
+      this.bent = true;
+    }
     if (this.dir == "right") {
       this.vel.x = this.H_acc;
     } else {
@@ -82,28 +83,28 @@ class Player {
     this.H_acc -= 0.2;
     if (this.H_acc < 0) this.H_acc = 0;
 
-    if (keyIsDown(16) || keyIsDown(83)) {
-      this.bent = true;
-    }
     if (keyIsDown(87) || keyIsDown(32)) {
       this.jump = this.canJump();
       if (this.jump && !this.bent) {
-        //var jump = createVector(0, -350);
-        //this.applyForce(jump);
-        //this.acc.y -= 1;
         this.vel.y -= JUMP_VEL;
         this.jump = false;
       }
     }
+
     // Prevents overlapping when changing from bent to straight
     if (this.wasBent && !this.bent) {
-      this.pos.y -= BLOCK_W * 0.8;
+      this.pos.y -= PLAYER_W;
+      this.vel.y = 0;
+    }
+
+    // Move the player down if it is bent
+    if (!this.wasBent && this.bent) {
+      this.pos.y += (PLAYER_H - PLAYER_H_SNEAK) * 1;
       this.vel.y = 0;
     }
 
     this.vel.add(this.acc);
-    //print("acc", this.acc.y)
-    this.vel.limit(20);
+    this.vel.limit(MAX_VEL);
     this.move(this.vel.x, 0);
     this.move(0, this.vel.y);
     this.preventOverlap(this.pos.x, this.pos.y);
@@ -156,13 +157,13 @@ class Player {
         if (this.colliding(x, y, block) && block.type != null) {
           if (newPos.mag() > 0.2) {
             newPos.mult(0.5);
-            newPos.y = float(nf(newPos.y, 2, 3));
+            newPos.y = round(newPos.y * 1000) / 1000;
             this.move(newPos.x, newPos.y);
             this.vel.x = 0;
             if (a == 0) this.vel.y = 0;
-            return 0;
+            return;
           } else {
-            return 0;
+            return;
           }
         }
       }
@@ -181,7 +182,6 @@ class Player {
   }
 
   applyForce(force) {
-    this.mass = 50;
     let acc = p5.Vector.div(force, this.mass);
     this.acc.add(acc);
   }
