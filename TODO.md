@@ -5,13 +5,15 @@
 - [x] Block could be a class
 - [ ] Check how changedBlocks and storage works (should be called on Inventory.storeBlock and Inventory.placeBlock?)
 - [-] Add constants to change some variables (CLOUDS_NUM, INVENTARY_SIZE, BLOCK_W, etc)
-- [ ] Just draw the blocks on the canvas (make the world generate from [-100, 100] and set the player in the center)
-- [ ] Fix physics
-- [ ] Fix bending mechanics
+- [-] Just draw the blocks on the canvas (make the world generate from [-100, 100] and set the player in the center)
+- [ ] Fix canJump(), move() and preventOverlap() physics --> Make the player's starting position the bottom-left corner
+- [x] Fix bending mechanics
+- [ ] Fix clouds Paradax effect (and image colour)
 - [ ] Add sprint
 - [ ] Add mouse lateral keys
 - [ ] Make removed blocks float until they're stored (or if storage is full)
 - [ ] Improve visuals on broken blocks
+- [ ] Don't let the hand break a far block if there's one near (break the nearest one first) 
 
 - Generación procedural ✅
 - Personaje ✅
@@ -23,4 +25,4 @@
 - Item.js no sirve??
 - Hand fuera del personaje
 - Césped
-- Agua con físicass
+- Agua con físicas
