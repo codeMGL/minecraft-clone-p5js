@@ -23,7 +23,7 @@ const GRAVITY_FORCE = 30;
 const MAX_SPEED = DEBUG ? 6 : 5;
 const MIN_SPEED = DEBUG ? 1.5 : 1;
 const ACCELERATION = DEBUG ? 0.8 : 0.5;
-const JUMP_VEL = DEBUG ? 15 : 8;
+const JUMP_VEL = DEBUG ? 18 : 10;
 const FRICTION = DEBUG ? 0.1 : 0.2;
 
 // Mass and volume

@@ -154,65 +154,75 @@ class Player {
   }
 
   checkHorizontalCollisions() {
-    var box = this.getBoundingBox();
-    // Future positions before correcting collisions
-    box.left += this.vel.x;
-    box.right += this.vel.x;
-    var range = this.getBoxRange(box);
+    // Check collisionsstep by step to prevent tunneling
+    for (
+      var vel = min(this.vel.x, BLOCK_W);
+      vel <= this.vel.x;
+      vel += BLOCK_W
+    ) {
+      var box = this.getBoundingBox();
+      box.left += vel;
+      box.right += vel;
+      var range = this.getBoxRange(box);
 
-    for (var i = range.left; i <= range.right; i++) {
-      for (var j = range.top; j <= range.bottom; j++) {
-        var block = blocks[i][j];
+      for (var i = range.left; i <= range.right; i++) {
+        for (var j = range.top; j <= range.bottom; j++) {
+          var block = blocks[i][j];
 
-        if (this.colliding(box, block)) {
-          if (this.vel.x > 0) {
-            // Moving to the right
-            this.pos.x = block.x - this.w;
-          } else {
-            // Moving to the left
-            this.pos.x = block.x + BLOCK_W;
+          if (this.colliding(box, block)) {
+            if (this.vel.x > 0) {
+              // Moving to the right
+              this.pos.x = block.x - this.w;
+            } else {
+              // Moving to the left
+              this.pos.x = block.x + BLOCK_W;
+            }
+
+            this.vel.x = 0;
+            this.currentSpeed = 0;
+            return;
           }
-
-          this.vel.x = 0;
-          this.currentSpeed = 0;
-          return;
         }
       }
+      // If it doesn't hit any block
+      this.pos.x += this.vel.x;
     }
-    // If it doesn't hit any block
-    this.pos.x += this.vel.x;
-    // print("moves x", this.vel);
   }
 
   checkVerticalCollisions() {
-    var box = this.getBoundingBox();
-    // Future positions before correcting collisions
-    box.top += this.vel.y;
-    box.bottom += this.vel.y;
-    var range = this.getBoxRange(box);
+    for (
+      var vel = min(BLOCK_W, this.vel.y);
+      vel <= this.vel.y;
+      vel += BLOCK_W
+    ) {
+      var box = this.getBoundingBox();
+      // Future positions before correcting collisions
+      box.top += vel;
+      box.bottom += vel;
+      var range = this.getBoxRange(box);
 
-    for (var i = range.left; i <= range.right; i++) {
-      for (var j = range.top; j <= range.bottom; j++) {
-        var block = blocks[i][j];
+      for (var i = range.left; i <= range.right; i++) {
+        for (var j = range.top; j <= range.bottom; j++) {
+          var block = blocks[i][j];
 
-        if (this.colliding(box, block)) {
-          if (this.vel.y > 0) {
-            // Falling
-            this.pos.y = block.y;
-          } else {
-            // Going up
-            this.pos.y = block.y + BLOCK_W;
+          if (this.colliding(box, block)) {
+            if (this.vel.y > 0) {
+              // Falling
+              this.pos.y = block.y;
+            } else {
+              // Going up
+              this.pos.y = block.y + BLOCK_W + this.h;
+            }
+
+            this.vel.y = 0;
+            return;
           }
-
-          this.vel.y = 0;
-          return;
         }
       }
-    }
 
-    // If it doesn't hit any block
-    this.pos.y += this.vel.y;
-    print("moves y");
+      // If it doesn't hit any block
+      this.pos.y += this.vel.y;
+    }
   }
 
   /**
