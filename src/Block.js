@@ -11,6 +11,16 @@ class Block {
     this.crackY = random(BLOCK_W);
   }
 
+  get isEmpty() {
+    return this.type == null;
+  }
+
+  d(r, g, b) {
+    stroke(r, g, b)
+    noFill();
+    rect(this.x, this.y, BLOCK_W)
+  }
+
   draw() {
     if (this.type != null) {
       imageMode(CORNER);

@@ -8,7 +8,7 @@ let clouds = [];
 
 var player;
 
-var GRAVITY; // Gravity vector
+var gravity; // Gravity vector
 // Hand global variables and player's center position
 var handPos, handX, handY, plyrPos;
 var initialized = false;
@@ -43,7 +43,6 @@ function preload() {
 
 function setup() {
   const canvas = createCanvas(W * SCALE, H * SCALE);
-  console.clear();
 
   randomSeed(42);
   noiseSeed(42);
@@ -55,7 +54,7 @@ function setup() {
 
   noStroke();
   textFont(font);
-  GRAVITY = createVector(0, 30);
+  gravity = createVector(0, GRAVITY_FORCE);
 
   // Block indexes where they start to generate the world
   stX = 300; // 300
@@ -210,9 +209,9 @@ function drawGame() {
   // Contrains player position & draw world limits
   worldLimits();
 
-  player.applyForce(GRAVITY);
+  player.applyForce(gravity);
   player.update();
-  player.show();
+  player.show(); 
 
   drawHand();
 
@@ -371,6 +370,7 @@ function mousePressed(e) {
       }
       if (blocks[i][j].type == null && mouseButton == RIGHT) {
         inventory.placeBlock(i, j);
+        player.preventOverlap(blocks[i][j]);
       }
     }
   }
@@ -380,13 +380,13 @@ function drawHand() {
   // Center position of the player
   plyrPos = createVector(
     player.pos.x + player.w / 2,
-    player.pos.y + player.h / 2,
+    player.pos.y - player.h / 2,
   );
   // Mouse translated position
   var mouse = createVector(mouseX + trX, mouseY + trY);
   // Vector pointing from the player to the mouse
   handPos = p5.Vector.sub(mouse, plyrPos);
-  handPos.limit(BLOCK_W * 1.5);
+  handPos.limit(HAND_MAX_LEN);
   noFill();
   stroke(255);
   strokeWeight(2);
