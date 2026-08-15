@@ -8,7 +8,7 @@ let clouds = [];
 
 var player;
 
-var GRAVITY; // Gravity vector
+var gravity; // Gravity vector
 // Hand global variables and player's center position
 var handPos, handX, handY, plyrPos;
 var initialized = false;
@@ -54,7 +54,7 @@ function setup() {
 
   noStroke();
   textFont(font);
-  GRAVITY = createVector(0, 30);
+  gravity = createVector(0, GRAVITY_FORCE);
 
   // Block indexes where they start to generate the world
   stX = 300; // 300
@@ -209,7 +209,7 @@ function drawGame() {
   // Contrains player position & draw world limits
   worldLimits();
 
-  player.applyForce(GRAVITY);
+  player.applyForce(gravity);
   player.update();
   player.show(); 
 

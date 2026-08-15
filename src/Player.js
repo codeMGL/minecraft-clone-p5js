@@ -6,6 +6,8 @@ class Player {
     this.mass = PLAYER_MASS;
 
     this.vel = createVector(0, 0);
+    // Scalar counting how much to increase the velocity
+    this.currentSpeed = 0;
     this.acc = createVector(0, 0);
     this.dir = "";
 
@@ -14,9 +16,6 @@ class Player {
 
     this.bent = false;
     this.wasBent = false;
-
-    this.H_vel = H_VEL;
-    this.H_acc = 0;
 
     // Force applied to break a block, between 0.0 and 1.0
     this.breakingForce = HAND_BREAK_FORCE;
@@ -34,85 +33,112 @@ class Player {
     noStroke();
     // Start drawing the rectangle from the left-bottom corner
     rect(this.pos.x, this.pos.y - this.h, this.w, this.h);
+    stroke(0, 255, 0);
+    strokeWeight(1);
+    line(
+      this.pos.x + this.w / 2,
+      this.pos.y,
+      this.pos.x + this.w / 2 + this.vel.x * 5,
+      this.pos.y,
+    );
 
-    var box = this.getBoundingBox();
-    noFill();
-    stroke(220)
-    rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
+    // var box = this.getBoundingBox();
+    // noFill();
+    // stroke(220);
+    // rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
   }
 
   update() {
+    // REFACTOR: Divide function into functionalities
     this.wasBent = this.bent;
-    this.bent = false;
 
-    // REFACTOR: Why don't just decrease this.vel instead of this.H_acc
+    // Bend --
     if (keyIsDown(16) || keyIsDown(83)) {
       // 'S' / 'Shift'
       this.bent = true;
+    } else if (this.bent) {
+      // Check if the player can be straight (this.bent = false);
+      var newJ = max(0, floor((this.pos.y - PLAYER_H) / BLOCK_W));
+      var box = this.getBoundingBox();
+      box.top = box.bottom - PLAYER_H;
+      var range = this.getBoxRange(box);
+
+      this.bent = false;
+      for (var i = range.left; i <= range.right; i++) {
+        if (this.colliding(box, blocks[i][newJ])) {
+          // It will collide
+          this.bent = true;
+          break;
+        }
+      }
     }
 
-    // Applying horizontal movement ('A' and 'D' keys)
-    if (this.dir == "right") {
-      this.vel.x = this.H_acc;
-    } else {
-      this.vel.x = -this.H_acc;
-    }
+    
+    // Applying horizontal movement ('A' and 'D' keys) --
     if (keyIsDown(68)) {
       // 'D'
       this.dir = "right";
-      this.vel.x = this.H_vel;
-      this.H_acc = H_ACC;
+      // The player's speed is constrained between it's minimum speed (when it goes from still to moving)
+      // and it's maximum speed, increasing by a factor of 'ACCELERATION'
+      this.currentSpeed = min(
+        max(MIN_SPEED, this.currentSpeed + ACCELERATION),
+        MAX_SPEED,
+      );
     }
     if (keyIsDown(65)) {
       // 'A'
       this.dir = "left";
-      this.vel.x = -this.H_vel;
-      this.H_acc = H_ACC;
+      this.currentSpeed = max(
+        min(-MIN_SPEED, this.currentSpeed - ACCELERATION),
+        -MAX_SPEED,
+      );
     }
-    this.H_acc -= 0.2;
-    if (this.H_acc < 0) this.H_acc = 0;
+    // Apply friction
+    if (this.currentSpeed > 0) {
+      this.currentSpeed -= FRICTION;
+    } else if (this.currentSpeed < 0) {
+      this.currentSpeed += FRICTION;
+    }
+    // Speed is null if near zero
+    this.currentSpeed =
+    abs(this.currentSpeed) < MIN_SPEED / 2 ? 0 : this.currentSpeed;
 
+    // Apply changes
+    this.vel.x = this.currentSpeed;
+
+    // JUMP --
     if (keyIsDown(87) || keyIsDown(32)) {
       // 'W' / 'Space'
-      this.jump = this.canJump();
-      if (this.jump && !this.bent) {
+      if (this.canJump()) {
         this.vel.y -= JUMP_VEL;
-        this.jump = false;
         print("jump!");
       }
     }
 
-    // Prevents overlapping when changing from bent to straight
-    if (this.wasBent && !this.bent) {
-      this.pos.y -= PLAYER_W;
-      this.vel.y = 0;
-    }
 
-    // Move the player down if it is bent
-    if (!this.wasBent && this.bent) {
-      this.pos.y += (PLAYER_H - PLAYER_H_SNEAK) * 1;
-      this.vel.y = 0;
-    }
-
+    // Apply physics --
     // Add accelaration
     this.vel.add(this.acc);
 
-    // Calculate this.vel vector that doesn't collide
-    // this.move();
+    // Add horizontal velocity, if there are no collisions
+    if (this.vel.x != 0) {
+      this.checkHorizontalCollisions();
+    }
 
-    this.vel.limit(BLOCK_W * 0.45);
-
-    // Add horizontal velocity
-    this.checkHorizontalCollisions();
-
-    // Add vertical velocity
-    this.checkVerticalCollisions();
+    // Add vertical velocity, if there are no collisions
+    if (this.vel.y != 0) {
+      this.checkVerticalCollisions();
+    }
 
     // Reset acceleration
     this.acc.set(0, 0);
   }
 
   canJump() {
+    if (this.bent) {
+      return false;
+    }
+
     var box = this.getBoundingBox();
     // Add a small threshold to make the bounding box touch the ground
     box.bottom += 0.01;
@@ -123,7 +149,7 @@ class Player {
     for (var i = range.left; i <= range.right; i++) {
       var block = blocks[i][j];
 
-      if (!block.isEmpty && this.colliding(box, block)) {
+      if (this.colliding(box, block)) {
         return true;
       }
     }
@@ -132,19 +158,24 @@ class Player {
   }
 
   checkHorizontalCollisions() {
-    var newX = this.pos.x + this.vel.x;
-
     var box = this.getBoundingBox();
     // Future positions before correcting collisions
+    this.vel.x *= 2;
     box.left += this.vel.x;
     box.right += this.vel.x;
+    noFill();
+    strokeWeight(3);
+    stroke(50);
+    // rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
     var range = this.getBoxRange(box);
 
     for (var i = range.left; i <= range.right; i++) {
       for (var j = range.top; j < range.bottom; j++) {
         var block = blocks[i][j];
+        block.d(0, 0, 0);
 
-        if (!block.isEmpty && this.colliding(box, block)) {
+        if (this.colliding(box, block)) {
+          block.d(255, 0, 0);
           if (this.vel.x > 0) {
             // Moving to the right
             this.pos.x = block.x - this.w;
@@ -154,18 +185,17 @@ class Player {
           }
 
           this.vel.x = 0;
+          this.currentSpeed = 0;
           return;
         }
       }
-
-      // If it doesn't hit any block
-      this.pos.x = newX;
     }
+    // If it doesn't hit any block
+    this.pos.x += this.vel.x;
+    // print("moves x", this.vel);
   }
 
   checkVerticalCollisions() {
-    var newY = this.pos.y + this.vel.y;
-
     var box = this.getBoundingBox();
     // Future positions before correcting collisions
     box.top += this.vel.y;
@@ -176,7 +206,7 @@ class Player {
       for (var j = range.top; j <= range.bottom; j++) {
         var block = blocks[i][j];
 
-        if (!block.isEmpty && this.colliding(box, block)) {
+        if (this.colliding(box, block)) {
           if (this.vel.y > 0) {
             // Falling
             this.pos.y = block.y;
@@ -189,10 +219,11 @@ class Player {
           return;
         }
       }
-
-      // If it doesn't hit any block
-      this.pos.y = newY;
     }
+
+    // If it doesn't hit any block
+    this.pos.y += this.vel.y;
+    print("moves y");
   }
 
   /**
@@ -216,7 +247,6 @@ class Player {
     }
   }
 
-
   breakBlock(i, j) {
     var b = blocks[i][j];
     b.getDamage(this.breakingForce);
@@ -227,17 +257,25 @@ class Player {
     }
   }
 
+  /**
+   * Transforms a force vector into an acceleration
+   * @param {p5.Vector} force
+   */
   applyForce(force) {
-    let acc = p5.Vector.div(force, this.mass);
+    var acc = p5.Vector.div(force, this.mass);
     this.acc.add(acc);
   }
 
+  /**
+   * Returns if the bounding box is colliding with a non-empty block
+   */
   colliding(box, block) {
     return (
       box.left < block.x + BLOCK_W &&
       box.right > block.x &&
       box.top < block.y + BLOCK_W &&
-      box.bottom > block.y
+      box.bottom > block.y &&
+      !block.isEmpty
     );
   }
 
