@@ -3,8 +3,11 @@ class Player {
     this.pos = createVector(x, y);
     this.w = PLAYER_W;
     this.h = PLAYER_H;
+    this.mass = PLAYER_MASS;
 
     this.vel = createVector(0, 0);
+    // Scalar counting how much to increase the velocity
+    this.currentSpeed = 0;
     this.acc = createVector(0, 0);
     this.dir = "";
 
@@ -14,160 +17,233 @@ class Player {
     this.bent = false;
     this.wasBent = false;
 
-    this.H_vel = H_VEL;
-    this.H_acc = 0;
-
-    // Force applied to break a block, [0.0, 1.0]
+    // Force applied to break a block, between 0.0 and 1.0
     this.breakingForce = HAND_BREAK_FORCE;
   }
 
   show() {
-    fill(0);
-    noStroke();
+    // Update height if it's bent
     if (!this.bent) {
       this.h = PLAYER_H;
     } else {
       this.h = PLAYER_H_SNEAK;
-
-      if (this.bent && !this.wasBent) {
-        // Move the player down
-        this.pos.y += BLOCK_W * (1.6 - 0.9);
-      }
     }
-    rect(this.pos.x, this.pos.y, this.w, this.h);
-  }
 
-  canJump() {
-    var x = this.pos.x,
-      y = this.pos.y;
-    var si = round((x + this.w / 2) / BLOCK_W); // Start i
-    var sj = round((y + this.h / 2) / BLOCK_W);
-    si = max(1, si);
-    sj = max(1, sj);
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj - 1; j <= sj + 1; j++) {
-        if (
-          blocks[i][j].type != null &&
-          this.colliding(x, y + 0.1, blocks[i][j])
-        ) {
-          if (abs(y + this.h - blocks[i][j].y) > 0.02) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
+    fill(0);
+    noStroke();
+    // Start drawing the rectangle from the left-bottom corner
+    rect(this.pos.x, this.pos.y - this.h, this.w, this.h);
+    stroke(0, 255, 0);
+    strokeWeight(1);
+    line(
+      this.pos.x + this.w / 2,
+      this.pos.y,
+      this.pos.x + this.w / 2 + this.vel.x * 5,
+      this.pos.y,
+    );
+
+    // var box = this.getBoundingBox();
+    // noFill();
+    // stroke(220);
+    // rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
   }
 
   update() {
+    // REFACTOR: Divide function into functionalities
     this.wasBent = this.bent;
-    this.bent = false;
 
-    // REFACTOR: Why don't just decrease this.vel instead of this.this.H_acc
-    if (this.dir == "right") {
-      this.vel.x = this.H_acc;
-    } else {
-      this.vel.x = -this.H_acc;
-    }
-    if (keyIsDown(68)) {
-      this.dir = "right";
-      this.vel.x = this.H_vel;
-      this.H_acc = H_ACC;
-    }
-    if (keyIsDown(65)) {
-      this.dir = "left";
-      this.vel.x = -this.H_vel;
-      this.H_acc = H_ACC;
-    }
-    this.H_acc -= 0.2;
-    if (this.H_acc < 0) this.H_acc = 0;
-
+    // Bend --
     if (keyIsDown(16) || keyIsDown(83)) {
+      // 'S' / 'Shift'
       this.bent = true;
-    }
-    if (keyIsDown(87) || keyIsDown(32)) {
-      this.jump = this.canJump();
-      if (this.jump && !this.bent) {
-        //var jump = createVector(0, -350);
-        //this.applyForce(jump);
-        //this.acc.y -= 1;
-        this.vel.y -= JUMP_VEL;
-        this.jump = false;
-      }
-    }
-    // Prevents overlapping when changing from bent to straight
-    if (this.wasBent && !this.bent) {
-      this.pos.y -= BLOCK_W * 0.8;
-      this.vel.y = 0;
-    }
+    } else if (this.bent) {
+      // Check if the player can be straight (this.bent = false);
+      var newJ = max(0, floor((this.pos.y - PLAYER_H) / BLOCK_W));
+      var box = this.getBoundingBox();
+      box.top = box.bottom - PLAYER_H;
+      var range = this.getBoxRange(box);
 
-    this.vel.add(this.acc);
-    //print("acc", this.acc.y)
-    this.vel.limit(20);
-    this.move(this.vel.x, 0);
-    this.move(0, this.vel.y);
-    this.preventOverlap(this.pos.x, this.pos.y);
-    this.acc.set(0, 0);
-  }
-
-  preventOverlap(x, y) {
-    var si = round((x + this.w / 2) / BLOCK_W);
-    var sj = round((y + this.h / 2) / BLOCK_W);
-    si = max(0, si);
-    sj = max(0, sj);
-    var newX = 0,
-      newY = 0;
-
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj; j <= sj + 1; j++) {
-        var b = blocks[i][j];
-        if (this.colliding(x, y, b) && b.type != null) {
-          if (x + this.w >= b.x) {
-            newX += 2;
-          }
-          if (x <= b.x + BLOCK_W) {
-            newX -= 2;
-          }
-          if (y + this.h >= b.y) {
-            newY += 2;
-          }
-          if (y <= b.y + BLOCK_W) {
-            newY -= 2;
-          }
-        } // end colliding
-      }
-    }
-    // print(newX, newY);
-    this.pos.x += newX;
-    this.pos.y += newY;
-  }
-
-  move(a, b) {
-    var x = this.pos.x + a;
-    var y = this.pos.y + b;
-    var si = round(x / BLOCK_W); // Start i
-    var sj = round(y / BLOCK_W);
-    si = max(0, si);
-    sj = max(0, sj);
-    var newPos = createVector(a, b);
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj; j <= sj + 1; j++) {
-        var block = blocks[i][j];
-        if (this.colliding(x, y, block) && block.type != null) {
-          if (newPos.mag() > 0.2) {
-            newPos.mult(0.5);
-            newPos.y = float(nf(newPos.y, 2, 3));
-            this.move(newPos.x, newPos.y);
-            this.vel.x = 0;
-            if (a == 0) this.vel.y = 0;
-            return 0;
-          } else {
-            return 0;
-          }
+      this.bent = false;
+      for (var i = range.left; i <= range.right; i++) {
+        if (this.colliding(box, blocks[i][newJ])) {
+          // It will collide
+          this.bent = true;
+          break;
         }
       }
     }
-    this.pos.add(newPos);
+
+    // Applying horizontal movement ('A' and 'D' keys) --
+    if (keyIsDown(68)) {
+      // 'D'
+      this.dir = "right";
+      // The player's speed is constrained between it's minimum speed (when it goes from still to moving)
+      // and it's maximum speed, increasing by a factor of 'ACCELERATION'
+      this.currentSpeed = min(
+        max(MIN_SPEED, this.currentSpeed + ACCELERATION),
+        MAX_SPEED,
+      );
+    }
+    if (keyIsDown(65)) {
+      // 'A'
+      this.dir = "left";
+      this.currentSpeed = max(
+        min(-MIN_SPEED, this.currentSpeed - ACCELERATION),
+        -MAX_SPEED,
+      );
+    }
+    // Apply friction
+    if (this.currentSpeed > 0) {
+      this.currentSpeed -= FRICTION;
+    } else if (this.currentSpeed < 0) {
+      this.currentSpeed += FRICTION;
+    }
+    // Speed is null if near zero
+    this.currentSpeed =
+      abs(this.currentSpeed) < MIN_SPEED / 2 ? 0 : this.currentSpeed;
+
+    // Apply changes
+    this.vel.x = this.currentSpeed;
+
+    // JUMP --
+    if (keyIsDown(87) || keyIsDown(32)) {
+      // 'W' / 'Space'
+      if (this.canJump()) {
+        this.vel.y -= JUMP_VEL;
+        print("jump!");
+      }
+    }
+
+    // Apply physics --
+    // Add accelaration
+    this.vel.add(this.acc);
+
+    // Add horizontal velocity, if there are no collisions
+    if (this.vel.x != 0) {
+      this.checkHorizontalCollisions();
+    }
+
+    // Add vertical velocity, if there are no collisions
+    if (this.vel.y != 0) {
+      this.checkVerticalCollisions();
+    }
+
+    // Reset acceleration
+    this.acc.set(0, 0);
+  }
+
+  canJump() {
+    if (this.bent) {
+      return false;
+    }
+
+    var box = this.getBoundingBox();
+    // Add a small threshold to make the bounding box touch the ground
+    box.bottom += 0.01;
+
+    var range = this.getBoxRange(box);
+    var j = max(0, floor(box.bottom / BLOCK_W));
+
+    for (var i = range.left; i <= range.right; i++) {
+      if (this.colliding(box, blocks[i][j])) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  checkHorizontalCollisions() {
+    // Check collisionsstep by step to prevent tunneling
+    for (
+      var vel = min(this.vel.x, BLOCK_W);
+      vel <= this.vel.x;
+      vel += BLOCK_W
+    ) {
+      var box = this.getBoundingBox();
+      box.left += vel;
+      box.right += vel;
+      var range = this.getBoxRange(box);
+
+      for (var i = range.left; i <= range.right; i++) {
+        for (var j = range.top; j <= range.bottom; j++) {
+          var block = blocks[i][j];
+
+          if (this.colliding(box, block)) {
+            if (this.vel.x > 0) {
+              // Moving to the right
+              this.pos.x = block.x - this.w;
+            } else {
+              // Moving to the left
+              this.pos.x = block.x + BLOCK_W;
+            }
+
+            this.vel.x = 0;
+            this.currentSpeed = 0;
+            return;
+          }
+        }
+      }
+      // If it doesn't hit any block
+      this.pos.x += this.vel.x;
+    }
+  }
+
+  checkVerticalCollisions() {
+    for (
+      var vel = min(BLOCK_W, this.vel.y);
+      vel <= this.vel.y;
+      vel += BLOCK_W
+    ) {
+      var box = this.getBoundingBox();
+      // Future positions before correcting collisions
+      box.top += vel;
+      box.bottom += vel;
+      var range = this.getBoxRange(box);
+
+      for (var i = range.left; i <= range.right; i++) {
+        for (var j = range.top; j <= range.bottom; j++) {
+          var block = blocks[i][j];
+
+          if (this.colliding(box, block)) {
+            if (this.vel.y > 0) {
+              // Falling
+              this.pos.y = block.y;
+            } else {
+              // Going up
+              this.pos.y = block.y + BLOCK_W + this.h;
+            }
+
+            this.vel.y = 0;
+            return;
+          }
+        }
+      }
+
+      // If it doesn't hit any block
+      this.pos.y += this.vel.y;
+    }
+  }
+
+  /**
+   * Prevents the collision between the player an a new block
+   * @param {Block} block
+   */
+  preventOverlap(block) {
+    var box = this.getBoundingBox();
+
+    if (this.colliding(box, block)) {
+      // Check the horizontal distance between both centers
+      var horDist = block.x + BLOCK_W / 2 - (this.pos.x + this.w / 2);
+
+      // Move the player in the opposite direction
+      if (horDist > 0) {
+        // Block at the right, move the player to the left
+        this.pos.x = block.x - this.w;
+      } else {
+        this.pos.x = block.x + this.w;
+      }
+    }
   }
 
   breakBlock(i, j) {
@@ -180,18 +256,43 @@ class Player {
     }
   }
 
+  /**
+   * Transforms a force vector into an acceleration
+   * @param {p5.Vector} force
+   */
   applyForce(force) {
-    this.mass = 50;
-    let acc = p5.Vector.div(force, this.mass);
+    var acc = p5.Vector.div(force, this.mass);
     this.acc.add(acc);
   }
 
-  colliding(x, y, other) {
+  /**
+   * Returns if the bounding box is colliding with a non-empty block
+   */
+  colliding(box, block) {
     return (
-      x + this.w >= other.x &&
-      x <= other.x + BLOCK_W &&
-      y + this.h >= other.y &&
-      y <= other.y + BLOCK_W
+      box.left < block.x + BLOCK_W &&
+      box.right > block.x &&
+      box.top < block.y + BLOCK_W &&
+      box.bottom > block.y &&
+      !block.isEmpty
     );
+  }
+
+  getBoundingBox() {
+    return {
+      left: this.pos.x,
+      right: this.pos.x + this.w,
+      top: this.pos.y - this.h,
+      bottom: this.pos.y,
+    };
+  }
+
+  getBoxRange(box) {
+    return {
+      left: max(0, floor(box.left / BLOCK_W)),
+      right: max(0, floor(box.right / BLOCK_W)),
+      top: max(0, floor(box.top / BLOCK_W)),
+      bottom: max(0, floor(box.bottom / BLOCK_W)),
+    };
   }
 }
