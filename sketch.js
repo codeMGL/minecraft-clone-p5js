@@ -370,6 +370,7 @@ function mousePressed(e) {
       }
       if (blocks[i][j].type == null && mouseButton == RIGHT) {
         inventory.placeBlock(i, j);
+        player.preventOverlap(blocks[i][j]);
       }
     }
   }

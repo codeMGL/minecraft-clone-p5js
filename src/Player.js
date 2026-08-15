@@ -107,19 +107,13 @@ class Player {
 
     // Reset acceleration
     this.acc.set(0, 0);
-
-    // this.vel.limit(MAX_VEL);
-    // this.move(this.vel.x, 0);
-    // this.move(0, this.vel.y);
-    // this.preventOverlap(this.pos.x, this.pos.y);
   }
 
   canJump() {
-
     var box = this.getBoundingBox();
     // Add a small threshold to make the bounding box touch the ground
     box.bottom += 0.01;
-    
+
     var range = this.getBoxRange(box);
     var j = max(0, floor(box.bottom / BLOCK_W));
 
@@ -148,16 +142,11 @@ class Player {
         var block = blocks[i][j];
 
         if (!block.isEmpty && this.colliding(box, block)) {
-          stroke(0);
-          noFill();
-          rect(block.x, block.y, BLOCK_W);
           if (this.vel.x > 0) {
             // Moving to the right
             this.pos.x = block.x - this.w;
-            print("touched > right block");
           } else {
             // Moving to the left
-            print("touched < left block");
             this.pos.x = block.x + BLOCK_W;
           }
 
@@ -203,36 +192,25 @@ class Player {
     }
   }
 
-  preventOverlap(x, y) {
-    var si = round((x + this.w / 2) / BLOCK_W);
-    var sj = round((y + this.h / 2) / BLOCK_W);
-    si = max(0, si);
-    sj = max(0, sj);
-    var newX = 0,
-      newY = 0;
+  /**
+   * Prevents the collision between the player an a new block
+   * @param {Block} block
+   */
+  preventOverlap(block) {
+    var box = this.getBoundingBox();
 
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj; j <= sj + 1; j++) {
-        var b = blocks[i][j];
-        if (this.colliding(x, y, b) && b.type != null) {
-          if (x + this.w >= b.x) {
-            newX += 2;
-          }
-          if (x <= b.x + BLOCK_W) {
-            newX -= 2;
-          }
-          if (y + this.h >= b.y) {
-            newY += 2;
-          }
-          if (y <= b.y + BLOCK_W) {
-            newY -= 2;
-          }
-        } // end colliding
+    if (this.colliding(box, block)) {
+      // Check the horizontal distance between both centers
+      var horDist = block.x + BLOCK_W / 2 - (this.pos.x + this.w / 2);
+
+      // Move the player in the opposite direction
+      if (horDist > 0) {
+        // Block at the right, move the player to the left
+        this.pos.x = block.x - this.w;
+      } else {
+        this.pos.x = block.x + this.w;
       }
     }
-    // print(newX, newY);
-    this.pos.x += newX;
-    this.pos.y += newY;
   }
 
   /**
