@@ -43,7 +43,6 @@ function preload() {
 
 function setup() {
   const canvas = createCanvas(W * SCALE, H * SCALE);
-  console.clear();
 
   randomSeed(42);
   noiseSeed(42);
@@ -212,7 +211,7 @@ function drawGame() {
 
   player.applyForce(GRAVITY);
   player.update();
-  player.show();
+  player.show(); 
 
   drawHand();
 

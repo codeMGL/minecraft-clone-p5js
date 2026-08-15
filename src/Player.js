@@ -5,6 +5,9 @@ class Player {
     this.h = PLAYER_H;
     this.mass = PLAYER_MASS;
 
+    // Bounding box
+    this.box = this.getBoundingBox();
+
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
     this.dir = "";
@@ -35,47 +38,30 @@ class Player {
     rect(this.pos.x, this.pos.y, this.w, this.h);
   }
 
-  canJump() {
-    var x = this.pos.x,
-      y = this.pos.y;
-    var si = round((x + this.w / 2) / BLOCK_W); // Start i
-    var sj = round((y + this.h / 2) / BLOCK_W);
-    si = max(1, si);
-    sj = max(1, sj);
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj - 1; j <= sj + 1; j++) {
-        if (
-          blocks[i][j].type != null &&
-          this.colliding(x, y + 0.1, blocks[i][j])
-        ) {
-          if (abs(y + this.h - blocks[i][j].y) > 0.02) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
   update() {
     this.wasBent = this.bent;
     this.bent = false;
 
     // REFACTOR: Why don't just decrease this.vel instead of this.H_acc
     if (keyIsDown(16) || keyIsDown(83)) {
+      // 'S' / 'Shift'
       this.bent = true;
     }
+
+    // Applying horizontal movement ('A' and 'D' keys)
     if (this.dir == "right") {
       this.vel.x = this.H_acc;
     } else {
       this.vel.x = -this.H_acc;
     }
     if (keyIsDown(68)) {
+      // 'D'
       this.dir = "right";
       this.vel.x = this.H_vel;
       this.H_acc = H_ACC;
     }
     if (keyIsDown(65)) {
+      // 'A'
       this.dir = "left";
       this.vel.x = -this.H_vel;
       this.H_acc = H_ACC;
@@ -84,10 +70,12 @@ class Player {
     if (this.H_acc < 0) this.H_acc = 0;
 
     if (keyIsDown(87) || keyIsDown(32)) {
+      // 'W' / 'Space'
       this.jump = this.canJump();
       if (this.jump && !this.bent) {
         this.vel.y -= JUMP_VEL;
         this.jump = false;
+        print("jump!");
       }
     }
 
@@ -103,12 +91,116 @@ class Player {
       this.vel.y = 0;
     }
 
+    // Add accelaration
     this.vel.add(this.acc);
-    this.vel.limit(MAX_VEL);
-    this.move(this.vel.x, 0);
-    this.move(0, this.vel.y);
-    this.preventOverlap(this.pos.x, this.pos.y);
+
+    // Calculate this.vel vector that doesn't collide
+    // this.move();
+
+    this.vel.limit(BLOCK_W * 0.45);
+
+    // Add horizontal velocity
+    this.checkHorizontalCollisions();
+
+    // Add vertical velocity
+    this.checkVerticalCollisions();
+
+    // Reset acceleration
     this.acc.set(0, 0);
+
+    // this.vel.limit(MAX_VEL);
+    // this.move(this.vel.x, 0);
+    // this.move(0, this.vel.y);
+    // this.preventOverlap(this.pos.x, this.pos.y);
+  }
+
+  canJump() {
+
+    var box = this.getBoundingBox();
+    // Add a small threshold to make the bounding box touch the ground
+    box.bottom += 0.01;
+    
+    var range = this.getBoxRange(box);
+    var j = max(0, floor(box.bottom / BLOCK_W));
+
+    for (var i = range.left; i <= range.right; i++) {
+      var block = blocks[i][j];
+
+      if (!block.isEmpty && this.colliding(box, block)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  checkHorizontalCollisions() {
+    var newX = this.pos.x + this.vel.x;
+
+    var box = this.getBoundingBox();
+    // Future positions before correcting collisions
+    box.left += this.vel.x;
+    box.right += this.vel.x;
+    var range = this.getBoxRange(box);
+
+    for (var i = range.left; i <= range.right; i++) {
+      for (var j = range.top; j < range.bottom; j++) {
+        var block = blocks[i][j];
+
+        if (!block.isEmpty && this.colliding(box, block)) {
+          stroke(0);
+          noFill();
+          rect(block.x, block.y, BLOCK_W);
+          if (this.vel.x > 0) {
+            // Moving to the right
+            this.pos.x = block.x - this.w;
+            print("touched > right block");
+          } else {
+            // Moving to the left
+            print("touched < left block");
+            this.pos.x = block.x + BLOCK_W;
+          }
+
+          this.vel.x = 0;
+          return;
+        }
+      }
+
+      // If it doesn't hit any block
+      this.pos.x = newX;
+    }
+  }
+
+  checkVerticalCollisions() {
+    var newY = this.pos.y + this.vel.y;
+
+    var box = this.getBoundingBox();
+    // Future positions before correcting collisions
+    box.top += this.vel.y;
+    box.bottom += this.vel.y;
+    var range = this.getBoxRange(box);
+
+    for (var i = range.left; i <= range.right; i++) {
+      for (var j = range.top; j <= range.bottom; j++) {
+        var block = blocks[i][j];
+
+        if (!block.isEmpty && this.colliding(box, block)) {
+          if (this.vel.y > 0) {
+            // Falling
+            this.pos.y = block.y - this.h;
+          } else {
+            // Going up
+            this.pos.y = block.y + BLOCK_W;
+          }
+
+          this.vel.y = 0;
+          return;
+        }
+      }
+
+      // If it doesn't hit any block
+      this.pos.y = newY;
+    }
   }
 
   preventOverlap(x, y) {
@@ -143,32 +235,39 @@ class Player {
     this.pos.y += newY;
   }
 
-  move(a, b) {
-    var x = this.pos.x + a;
-    var y = this.pos.y + b;
-    var si = round(x / BLOCK_W); // Start i
-    var sj = round(y / BLOCK_W);
-    si = max(0, si);
-    sj = max(0, sj);
-    var newPos = createVector(a, b);
-    for (var i = si - 1; i <= si + 1; i++) {
-      for (var j = sj; j <= sj + 1; j++) {
-        var block = blocks[i][j];
-        if (this.colliding(x, y, block) && block.type != null) {
-          if (newPos.mag() > 0.2) {
-            newPos.mult(0.5);
-            newPos.y = round(newPos.y * 1000) / 1000;
-            this.move(newPos.x, newPos.y);
-            this.vel.x = 0;
-            if (a == 0) this.vel.y = 0;
-            return;
-          } else {
-            return;
-          }
-        }
+  /**
+   * Modifies this.vel so the bounding box doesn't intersect with any block
+   */
+  move() {
+    this.vel.limit(BLOCK_W); /////////////////////////////////////////////////
+    this.box = this.getBoundingBox();
+
+    // Stores the minimum recorded length the this.vel vector can have for each vertex on this.body
+    var minLength = 1000;
+    for (var vertex of this.box) {
+      // New coordinates of the vertex
+      var newVertex = p5.Vector.add(vertex, this.vel);
+      var i = max(0, round(newVertex.x / BLOCK_W));
+      var j = max(0, round(newVertex.y / BLOCK_W));
+
+      var block = blocks[i][j];
+      noFill();
+      stroke("black");
+      line(vertex.x, vertex.y, newVertex.x, newVertex.y);
+      stroke("red");
+      if (
+        this.colliding(newVertex.x, newVertex.y, block) &&
+        block.type != null
+      ) {
+        var vect = p5.Vector.sub(newVertex, this.pos);
+        print("vect", vect);
+        minLength = min(minLength, vect.mag());
+        stroke("green");
       }
+      rect(block.x, block.y, BLOCK_W);
     }
-    this.pos.add(newPos);
+    print("minLength", minLength);
+    this.vel.limit(minLength);
   }
 
   breakBlock(i, j) {
@@ -186,12 +285,30 @@ class Player {
     this.acc.add(acc);
   }
 
-  colliding(x, y, other) {
+  colliding(box, block) {
     return (
-      x + this.w >= other.x &&
-      x <= other.x + BLOCK_W &&
-      y + this.h >= other.y &&
-      y <= other.y + BLOCK_W
+      box.left < block.x + BLOCK_W &&
+      box.right > block.x &&
+      box.top < block.y + BLOCK_W &&
+      box.bottom > block.y
     );
+  }
+
+  getBoundingBox() {
+    return {
+      left: this.pos.x,
+      right: this.pos.x + this.w,
+      top: this.pos.y,
+      bottom: this.pos.y + this.h,
+    };
+  }
+
+  getBoxRange(box) {
+    return {
+      left: max(0, floor(box.left / BLOCK_W)),
+      right: max(0, floor(box.right / BLOCK_W)),
+      top: max(0, floor(box.top / BLOCK_W)),
+      bottom: max(0, floor(box.bottom / BLOCK_W)),
+    };
   }
 }

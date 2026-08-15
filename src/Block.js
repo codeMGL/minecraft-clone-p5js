@@ -11,6 +11,10 @@ class Block {
     this.crackY = random(BLOCK_W);
   }
 
+  get isEmpty() {
+    return this.type == null;
+  }
+
   draw() {
     if (this.type != null) {
       imageMode(CORNER);
