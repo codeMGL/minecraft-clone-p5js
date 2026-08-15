@@ -5,9 +5,6 @@ class Player {
     this.h = PLAYER_H;
     this.mass = PLAYER_MASS;
 
-    // Bounding box
-    this.box = this.getBoundingBox();
-
     this.vel = createVector(0, 0);
     this.acc = createVector(0, 0);
     this.dir = "";
@@ -21,7 +18,7 @@ class Player {
     this.H_vel = H_VEL;
     this.H_acc = 0;
 
-    // Force applied to break a block, [0.0, 1.0]
+    // Force applied to break a block, between 0.0 and 1.0
     this.breakingForce = HAND_BREAK_FORCE;
   }
 
@@ -35,7 +32,13 @@ class Player {
 
     fill(0);
     noStroke();
-    rect(this.pos.x, this.pos.y, this.w, this.h);
+    // Start drawing the rectangle from the left-bottom corner
+    rect(this.pos.x, this.pos.y - this.h, this.w, this.h);
+
+    var box = this.getBoundingBox();
+    noFill();
+    stroke(220)
+    rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
   }
 
   update() {
@@ -176,7 +179,7 @@ class Player {
         if (!block.isEmpty && this.colliding(box, block)) {
           if (this.vel.y > 0) {
             // Falling
-            this.pos.y = block.y - this.h;
+            this.pos.y = block.y;
           } else {
             // Going up
             this.pos.y = block.y + BLOCK_W;
@@ -213,40 +216,6 @@ class Player {
     }
   }
 
-  /**
-   * Modifies this.vel so the bounding box doesn't intersect with any block
-   */
-  move() {
-    this.vel.limit(BLOCK_W); /////////////////////////////////////////////////
-    this.box = this.getBoundingBox();
-
-    // Stores the minimum recorded length the this.vel vector can have for each vertex on this.body
-    var minLength = 1000;
-    for (var vertex of this.box) {
-      // New coordinates of the vertex
-      var newVertex = p5.Vector.add(vertex, this.vel);
-      var i = max(0, round(newVertex.x / BLOCK_W));
-      var j = max(0, round(newVertex.y / BLOCK_W));
-
-      var block = blocks[i][j];
-      noFill();
-      stroke("black");
-      line(vertex.x, vertex.y, newVertex.x, newVertex.y);
-      stroke("red");
-      if (
-        this.colliding(newVertex.x, newVertex.y, block) &&
-        block.type != null
-      ) {
-        var vect = p5.Vector.sub(newVertex, this.pos);
-        print("vect", vect);
-        minLength = min(minLength, vect.mag());
-        stroke("green");
-      }
-      rect(block.x, block.y, BLOCK_W);
-    }
-    print("minLength", minLength);
-    this.vel.limit(minLength);
-  }
 
   breakBlock(i, j) {
     var b = blocks[i][j];
@@ -276,8 +245,8 @@ class Player {
     return {
       left: this.pos.x,
       right: this.pos.x + this.w,
-      top: this.pos.y,
-      bottom: this.pos.y + this.h,
+      top: this.pos.y - this.h,
+      bottom: this.pos.y,
     };
   }
 
