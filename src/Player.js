@@ -73,7 +73,6 @@ class Player {
       }
     }
 
-    
     // Applying horizontal movement ('A' and 'D' keys) --
     if (keyIsDown(68)) {
       // 'D'
@@ -101,7 +100,7 @@ class Player {
     }
     // Speed is null if near zero
     this.currentSpeed =
-    abs(this.currentSpeed) < MIN_SPEED / 2 ? 0 : this.currentSpeed;
+      abs(this.currentSpeed) < MIN_SPEED / 2 ? 0 : this.currentSpeed;
 
     // Apply changes
     this.vel.x = this.currentSpeed;
@@ -114,7 +113,6 @@ class Player {
         print("jump!");
       }
     }
-
 
     // Apply physics --
     // Add accelaration
@@ -147,9 +145,7 @@ class Player {
     var j = max(0, floor(box.bottom / BLOCK_W));
 
     for (var i = range.left; i <= range.right; i++) {
-      var block = blocks[i][j];
-
-      if (this.colliding(box, block)) {
+      if (this.colliding(box, blocks[i][j])) {
         return true;
       }
     }
@@ -160,22 +156,15 @@ class Player {
   checkHorizontalCollisions() {
     var box = this.getBoundingBox();
     // Future positions before correcting collisions
-    this.vel.x *= 2;
     box.left += this.vel.x;
     box.right += this.vel.x;
-    noFill();
-    strokeWeight(3);
-    stroke(50);
-    // rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
     var range = this.getBoxRange(box);
 
     for (var i = range.left; i <= range.right; i++) {
-      for (var j = range.top; j < range.bottom; j++) {
+      for (var j = range.top; j <= range.bottom; j++) {
         var block = blocks[i][j];
-        block.d(0, 0, 0);
 
         if (this.colliding(box, block)) {
-          block.d(255, 0, 0);
           if (this.vel.x > 0) {
             // Moving to the right
             this.pos.x = block.x - this.w;

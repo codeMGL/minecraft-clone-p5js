@@ -380,7 +380,7 @@ function drawHand() {
   // Center position of the player
   plyrPos = createVector(
     player.pos.x + player.w / 2,
-    player.pos.y + player.h / 2,
+    player.pos.y - player.h / 2,
   );
   // Mouse translated position
   var mouse = createVector(mouseX + trX, mouseY + trY);
