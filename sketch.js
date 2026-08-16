@@ -140,6 +140,7 @@ function setup() {
     }
   });
   loadGame = createInput();
+
 }
 
 function draw() {
@@ -323,12 +324,11 @@ function mousePressed(e) {
 
     // If the mouse is inside the canvas
     if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
-      if (blocks[i][j].type != null && mouseButton == LEFT) {
+      if (!blocks[i][j].isEmpty && mouseButton == LEFT) {
         player.breakBlock(i, j);
       }
-      if (blocks[i][j].type == null && mouseButton == RIGHT) {
+      if (blocks[i][j].isEmpty && mouseButton == RIGHT) {
         inventory.placeBlock(i, j);
-        player.preventOverlap(blocks[i][j]);
       }
     }
   }

@@ -243,18 +243,34 @@ class Player {
    * @param {Block} block
    */
   preventOverlap(block) {
+    // -- VERTICAL OVERLAP --
     var box = this.getBoundingBox();
 
     if (this.colliding(box, block)) {
-      // Check the horizontal distance between both centers
-      var horDist = block.x + BLOCK_W / 2 - (this.pos.x + this.w / 2);
+      if (block.y + BLOCK_W > box.top) {
+        // Block at the top, bend the player
+        this.bent = true;
+        this.h = PLAYER_H_SNEAK;
+      } else if (box.bottom > block.x) {
+        // Block at the bottom, move the player to its top
+        this.pos.y = block.x;
+      }
+    }
 
-      // Move the player in the opposite direction
-      if (horDist > 0) {
+    // -- HORIZONTAL OVERLAP --
+    var box = this.getBoundingBox();
+
+    if (this.colliding(box, block)) {
+      // Whether the player is at the right of the block or not
+      var playerRightBlock =
+        block.x + BLOCK_W / 2 - (this.pos.x + this.w / 2) >= 0;
+
+      if (box.right > block.x && playerRightBlock) {
         // Block at the right, move the player to the left
         this.pos.x = block.x - this.w;
-      } else {
-        this.pos.x = block.x + this.w;
+      } else if (block.x + BLOCK_W > box.left && !playerRightBlock) {
+        // Block at the left, move the player to the right
+        this.pos.x = block.x + BLOCK_W;
       }
     }
   }
