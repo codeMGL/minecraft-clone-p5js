@@ -42,7 +42,7 @@ function preload() {
 }
 
 function setup() {
-  const canvas = createCanvas(W * SCALE, H * SCALE);
+  const canvas = createCanvas(CANVAS_W * SCALE, CANVAS_H * SCALE);
 
   randomSeed(42);
   noiseSeed(42);
@@ -100,7 +100,7 @@ function setup() {
       settingsImg.hide();
       if (!initialized) {
         // Initialize game
-        createWorld(stX, stY);
+        createWorld();
         drawHand(); // REFACTOR: Can be deleted?
         initialized = true;
       }
@@ -166,7 +166,6 @@ function drawGame() {
   background("skyblue");
 
   push();
-
   // (i, j) indexes of the player minus the center of the world
   // It's used to as the starting coordinates of the world
   // They start at (playerI - trX, playerJ - trY)
@@ -188,30 +187,12 @@ function drawGame() {
   pop();
 
   translate(-trX, -trY);
-  // Extra blocks at both sides, so the screen is fully drawn
-  var extraBlocks = 1;
-  // Number of blocks drawn on each axis
-  chunkW = round(width / BLOCK_W) + extraBlocks;
-  chunkH = round(height / BLOCK_W) + extraBlocks;
 
-  // for (var i = playerI - 1; i < min(stX, 26 + playerI + 1); i++) {
-  //   for (var j = playerJ - 1; j < min(stY, 21 + playerJ + 1); j++) {
-  for (var i = 0; i < blocks.length; i++) {
-    for (var j = 0; j < blocks[i].length; j++) {
-      // print("player", playerI, playerJ);
-      // print(playerI + i, playerJ + j);
-      // var b = blocks[playerI + i][playerJ + j];
-      blocks[i][j].draw();
-
-    }
-  }
-
-  // Contrains player position & draw world limits
-  worldLimits();
+  drawWorld();
 
   player.applyForce(gravity);
   player.update();
-  player.show(); 
+  player.show();
 
   drawHand();
 
@@ -310,45 +291,22 @@ function image2name(img) {
 }
 
 /**
- * Constrains the player's position and draws the World's red line limits
+ * Draw just the blocks near the player. Draw world limit lines near the edges
  */
-function worldLimits() {
-  var off = BLOCK_W * 3;
-  player.pos.x = constrain(
-    player.pos.x,
-    off,
-    (WORLD_W - 3) * BLOCK_W - player.w,
-  );
-  player.pos.y = constrain(
-    player.pos.y,
-    -100,
-    (WORLD_H - 3) * BLOCK_W - player.h,
-  );
+function drawWorld() {
+  // Half the number of blocks drawn on each "chunk"
+  var halfW = floor(CANVAS_W / BLOCK_W / 2);
+  var halfH = floor(CANVAS_H / BLOCK_W / 2);
 
-  stroke(255, 0, 0);
-  // Left border
-  line(off, -WORLD_H * BLOCK_W, off, WORLD_H * BLOCK_W - off);
-  // Right border
-  line(
-    WORLD_W * BLOCK_W - off,
-    -WORLD_H * BLOCK_W,
-    WORLD_W * BLOCK_W - off,
-    WORLD_H * BLOCK_W - off,
-  );
-  // Bottom border
-  line(
-    off,
-    WORLD_H * BLOCK_W - off,
-    WORLD_W * BLOCK_W - off,
-    WORLD_H * BLOCK_W - off,
-  );
-  noStroke();
-  var n = width / 2 + 50;
-  rectMode(CORNER);
-  fill(255, 0, 0, 100);
-  rect(off - n, -200, n, WORLD_H * BLOCK_W - off + 200);
-  rect(WORLD_W * BLOCK_W - off, -200, n, WORLD_H * BLOCK_W - off + 200);
-  rect(-n, WORLD_H * BLOCK_W - off, WORLD_W * BLOCK_W, 200);
+  var playerI = max(0, floor(player.pos.x / BLOCK_W));
+  var playerJ = max(0, floor(player.pos.y / BLOCK_W));
+  for (var i = -halfW; i < halfW; i++) {
+    for (var j = -halfH; j < halfH; j++) {
+      var blockI = max(0, min(playerI + i, WORLD_W - 1));
+      var blockJ = max(0, min(playerJ + j, WORLD_H - 1));
+      blocks[blockI][blockJ].draw();
+    }
+  }
 }
 
 function keyPressed() {
@@ -399,20 +357,21 @@ function drawHand() {
  * Procedurally generates the world from -sX to +sX and -sY to +sY
  */
 function createWorld() {
+  print("Create world!");
   // Initializing the 2D array
   for (var i = 0; i < WORLD_W; i++) {
     blocks[i] = [];
     for (var j = 0; j < WORLD_H; j++) {
-      blocks[i][j] = new Block(i * BLOCK_W, j*BLOCK_W);
+      blocks[i][j] = new Block(i * BLOCK_W, j * BLOCK_W);
     }
   }
 
-  // Trees
   // REFACTOR
   var max = WORLD_H;
   var sX = WORLD_W;
   var noiseScl = 0.1;
   for (var i = 0; i < WORLD_W; i++) {
+    // Trees
     var start = noise(i * noiseScl);
     start = round(map(start, 0, 1, 13, 16));
 
@@ -438,10 +397,12 @@ function createWorld() {
       }
     }
 
-    // Dirt and stone
+    // Dirt
     for (var rnd = start; rnd < WORLD_H; rnd++) {
       blocks[i][rnd].type = t; // Tierra
     }
+
+    // Stone
     var n = noise(i * noiseScl);
     var s = round(random(16, 20));
     n = round(map(n, 0, 1, s, s + 8));

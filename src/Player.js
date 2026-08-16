@@ -130,6 +130,19 @@ class Player {
 
     // Reset acceleration
     this.acc.set(0, 0);
+
+    // Contrain player's position
+    var blockOffset = HAND_MAX_LEN;
+    this.pos.x = constrain(
+      this.pos.x,
+      blockOffset,
+      WORLD_W * BLOCK_W - this.w - blockOffset,
+    );
+    this.pos.y = constrain(
+      this.pos.y,
+      this.h + blockOffset,
+      WORLD_H * BLOCK_W - blockOffset,
+    );
   }
 
   canJump() {
@@ -154,7 +167,7 @@ class Player {
   }
 
   checkHorizontalCollisions() {
-    // Check collisionsstep by step to prevent tunneling
+    // Check collisions step by step to prevent tunneling
     for (
       var vel = min(this.vel.x, BLOCK_W);
       vel <= this.vel.x;
@@ -247,11 +260,11 @@ class Player {
   }
 
   breakBlock(i, j) {
-    var b = blocks[i][j];
-    b.getDamage(this.breakingForce);
-    if (b.life <= 0) {
+    var block = blocks[i][j];
+    block.getDamage(this.breakingForce);
+    if (block.life <= 0) {
       // Remove the block and restore block
-      b.life = 1.0;
+      block.life = 1.0;
       inventory.storeBlock(i, j);
     }
   }

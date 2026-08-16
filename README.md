@@ -19,7 +19,7 @@ While Minecraft is a 3D game, My Craft adapts these concepts to a custom 2D side
 * Procedural terrain generation
 * Collision detection and bounding boxes
 * Block interaction and durability
-* Dynamic world regeneration
+* Dynamic world drawing (chunks)
 * Efficient rendering of the visible world
 * Side-scrolling gameplay
 * Modular JavaScript architecture

@@ -2,8 +2,8 @@
 const DEBUG = false;
 
 // Canvas dimensions
-const W = 2560;
-const H = 1440;
+const CANVAS_W = 2560;
+const CANVAS_H = 1440;
 const SCALE = 0.4;
 
 // World constants (in number of blocks)
