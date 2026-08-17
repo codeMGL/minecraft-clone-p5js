@@ -49,10 +49,9 @@ class Player {
   }
 
   update() {
-    // REFACTOR: Divide function into functionalities
     this.wasBent = this.bent;
 
-    // Bend --
+    // -- BEND PLAYER --
     if (keyIsDown(16) || keyIsDown(83)) {
       // 'S' / 'Shift'
       this.bent = true;
@@ -73,7 +72,7 @@ class Player {
       }
     }
 
-    // Applying horizontal movement ('A' and 'D' keys) --
+    // -- APPLY HORIZONTAL MOVEMENT ('A' and 'D' keys) --
     if (keyIsDown(68)) {
       // 'D'
       this.dir = "right";
@@ -105,16 +104,15 @@ class Player {
     // Apply changes
     this.vel.x = this.currentSpeed;
 
-    // JUMP --
+    // -- APPLY VERTICAL MOVEMENT --
     if (keyIsDown(87) || keyIsDown(32)) {
       // 'W' / 'Space'
       if (this.canJump()) {
         this.vel.y -= JUMP_VEL;
-        print("jump!");
       }
     }
 
-    // Apply physics --
+    // -- APPLY PHYSICS --
     // Add accelaration
     this.vel.add(this.acc);
 
@@ -131,8 +129,8 @@ class Player {
     // Reset acceleration
     this.acc.set(0, 0);
 
-    // Contrain player's position
-    var blockOffset = HAND_MAX_LEN;
+    // -- CONSTRAIN PLAYER'S POSITION --
+    var blockOffset = HAND_MAX_LEN * 2;
     this.pos.x = constrain(
       this.pos.x,
       blockOffset,
@@ -243,6 +241,7 @@ class Player {
    * @param {Block} block
    */
   preventOverlap(block) {
+    var prevPos = this.pos.copy();
     // -- VERTICAL OVERLAP --
     var box = this.getBoundingBox();
 
@@ -272,6 +271,21 @@ class Player {
         // Block at the left, move the player to the right
         this.pos.x = block.x + BLOCK_W;
       }
+    }
+
+    // -- CHECK IF THE PLAYER IS STILL COLLIDING --
+    // REFACTOR: When preventing the other overlaps,
+    // it automatically makes imposible for the player to collide
+    // with 'block'. However, it collides with the adjacent ones
+    // and checkVerticalCollisions() makes it move upwards
+    var box = this.getBoundingBox();
+
+    if (this.colliding(box, block)) {
+      // Delete block
+      print("delete block");
+      inventory.breakBlock(block.x / BLOCK_W, block.y / BLOCK_W);
+      // Reset position
+      this.pos = prevPos.copy();
     }
   }
 

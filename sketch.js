@@ -27,7 +27,7 @@ var seed;
 
 // Image variables
 var t, tc, p, tr, h, font, n1, n2;
-var title, settingsImg, playImg, settingsImg, playImg;
+var title, settingsImg, playImg;
 function preload() {
   t = loadImage("images/Tierra.jpeg");
   tc = loadImage("images/Tierra_Cesped.jpeg");
@@ -86,7 +86,7 @@ function setup() {
   // DOM elements
   playImg = select("#playB");
   playImg
-    .position(width / 2, 180)
+    .position(width / 2, 270)
     .hide()
     .mouseOver(() => {
       playImg.size(149 * 1.1, 51 * 1.1);
@@ -140,7 +140,6 @@ function setup() {
     }
   });
   loadGame = createInput();
-
 }
 
 function draw() {
@@ -154,7 +153,7 @@ function draw() {
       drawHome();
       break;
 
-    case "settingss":
+    case "settings":
       drawSettings();
       break;
 
@@ -188,8 +187,11 @@ function drawGame() {
   pop();
 
   translate(-trX, -trY);
-
   drawWorld();
+
+  if (mouseIsPressed) {
+    mouseActions();
+  }
 
   player.applyForce(gravity);
   player.update();
@@ -222,9 +224,10 @@ function drawGame() {
 function drawHome() {
   background(0);
   imageMode(CENTER);
-  image(title, width / 2, 65, 530 / 1.2, 125 / 1.2);
+  var scl = 0.8;
+  image(title, width / 2, 120, 530 / scl, 125 / scl);
   playImg.show();
-  settingsImg.position(width / 2, 240).show();
+  settingsImg.position(width / 2, 350).show();
   loadGame.hide();
   saveGame.hide();
   seedInp.hide();
@@ -233,14 +236,14 @@ function drawHome() {
 function drawSettings() {
   // REFACTOR
   background(0);
-  settingsImg.position(width / 2, 30);
+  settingsImg.position(width / 2, 50);
   fill(255);
   textAlign(CENTER, CENTER);
   textSize(32);
-  text("Seed:", 220, 98);
-  seedInp.position(360, 100).show();
+  text("Seed:", 420, 98);
+  seedInp.position(560, 100).show();
   if (initialized) {
-    seedInp.html("2"); // ?????
+    seedInp.html("42");
     var px = round(player.pos.x);
     var py = round(player.pos.y);
     var game = `x${stX}y${stY}s${seed}x${px}y${py}
@@ -248,7 +251,6 @@ function drawSettings() {
     for (var i = 0; i < changedBlocks.length; i++) {
       var block = changedBlocks[i];
       var type = image2name(block.actualType);
-      print(type, block.actualType);
       game += `i${block.i}j${block.j}t${type}`;
     }
     game += `inv
@@ -260,20 +262,12 @@ function drawSettings() {
     seed = float(seedInp.value());
     saveGame.html(game);
   }
-  text("Load game:", 180, 153);
-  loadGame.position(360, 158).show();
-  text("Save game:", 180, 208);
-  saveGame.position(270, 203).show();
-  text("HOME", 456, 250);
-  if (
-    mouseX > 415 &&
-    mouseX < 495 &&
-    mouseY > 238 &&
-    mouseY < 268 &&
-    mouseIsPressed
-  ) {
-    mode = "home"; // REFACTOR
-  }
+  text("Load game:", 380, 153);
+  loadGame.position(560, 158).show();
+  text("Save game:", 380, 208);
+  saveGame.position(500, 190).show();
+  textAlign(CENTER, CENTER);
+  text("CLICK 'H' TO GO HOME", width / 2, 300);
 }
 
 function image2name(img) {
@@ -317,19 +311,23 @@ function keyPressed() {
   if (keyCode == 72) mode = "home";
 }
 
-function mousePressed(e) {
+function mousePressed() {
   if (mode == "game") {
-    let i = handX / BLOCK_W;
-    let j = handY / BLOCK_W;
+    mouseActions();
+  }
+}
 
-    // If the mouse is inside the canvas
-    if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
-      if (!blocks[i][j].isEmpty && mouseButton == LEFT) {
-        player.breakBlock(i, j);
-      }
-      if (blocks[i][j].isEmpty && mouseButton == RIGHT) {
-        inventory.placeBlock(i, j);
-      }
+function mouseActions() {
+  let i = handX / BLOCK_W;
+  let j = handY / BLOCK_W;
+
+  // If the mouse is inside the canvas
+  if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
+    if (!blocks[i][j].isEmpty && mouseButton == LEFT) {
+      player.breakBlock(i, j);
+    }
+    if (blocks[i][j].isEmpty && mouseButton == RIGHT) {
+      inventory.placeBlock(i, j);
     }
   }
 }
@@ -354,10 +352,9 @@ function drawHand() {
 }
 
 /**
- * Procedurally generates the world from -sX to +sX and -sY to +sY
+ * Procedurally generates the 2D world 
  */
 function createWorld() {
-  print("Create world!");
   // Initializing the 2D array
   for (var i = 0; i < WORLD_W; i++) {
     blocks[i] = [];
