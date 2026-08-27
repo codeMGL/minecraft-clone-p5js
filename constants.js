@@ -34,5 +34,8 @@ const PLAYER_H = BLOCK_W * 1.6;
 const PLAYER_H_SNEAK = BLOCK_W * 0.9;
 
 // Hand breaking force
-const HAND_BREAK_FORCE = 1.0; //DEBUG ? 1.0 : 0.2;
+const HAND_BREAK_FORCE = DEBUG ? 1.0 : 0.2;
 const HAND_MAX_LEN = BLOCK_W * 2;
+
+// Time (in milliseconds) that needs to pass until the next mouse action is listened
+const MOUSE_ACTION_SLEEP_TIME = 100;

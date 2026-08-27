@@ -62,7 +62,7 @@ class Inventory {
     }
     // Selected item square
     var x = (width - w) / 2 + itemW * this.selected;
-    stroke("red");
+    stroke(0);
     noFill();
     rect(x, h, itemW);
   }
@@ -70,18 +70,18 @@ class Inventory {
   /**
    * Mark the block as 'null' and store it in the inventory if it's not full
    */
-  storeBlock(i, j) {
-    var blockType = blocks[i][j].type;
+  storeBlock(block) {
+    var blockType = block.type;
     // REFACTOR: changedBlocks
-    var block = {
-      i: i,
-      j: j,
-      preType: blocks[i][j].type,
+    var newBlock = {
+      i: block.x / BLOCK_W,
+      j: block.y / BLOCK_W,
+      preType: block.type,
       actualType: null,
     };
-    changedBlocks.push(block);
+    changedBlocks.push(newBlock);
     ////
-    blocks[i][j].type = null;
+    block.type = null;
 
     // Store block into the array
     for (var i = 0; i < this.length; i++) {
@@ -106,21 +106,20 @@ class Inventory {
     /////
   }
 
-  placeBlock(i, j) {
-    var blockType = blocks[i][j].type;
-
+  placeBlock(block) {
     if (this.current.type != null) {
       // REFACTOR: Add block to changedBlocks
-      var blockB = {
-        x: i,
-        y: j,
+      var newBlock = {
+        i: block.x / BLOCK_W,
+        j: block.y / BLOCK_W,
         preType: null,
-        actualType: this.selected.type,
+        actualType: this.current.type,
       };
-      changedBlocks.push(blockB);
+      changedBlocks.push(newBlock);
       /////
 
-      blocks[i][j].type = this.current.type;
+      block.type = this.current.type;
+
       this.current.count--;
       if (this.current.count <= 0) {
         this.current.count = 0;

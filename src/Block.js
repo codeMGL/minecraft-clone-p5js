@@ -15,6 +15,7 @@ class Block {
     return this.type == null;
   }
 
+  /* Debug method */
   d(r, g, b) {
     stroke(r, g, b)
     noFill();

@@ -33,19 +33,6 @@ class Player {
     noStroke();
     // Start drawing the rectangle from the left-bottom corner
     rect(this.pos.x, this.pos.y - this.h, this.w, this.h);
-    stroke(0, 255, 0);
-    strokeWeight(1);
-    line(
-      this.pos.x + this.w / 2,
-      this.pos.y,
-      this.pos.x + this.w / 2 + this.vel.x * 5,
-      this.pos.y,
-    );
-
-    // var box = this.getBoundingBox();
-    // noFill();
-    // stroke(220);
-    // rect(box.left, box.top, box.right - box.left, box.bottom - box.top);
   }
 
   update() {
@@ -237,65 +224,90 @@ class Player {
   }
 
   /**
-   * Prevents the collision between the player an a new block
-   * @param {Block} block
+   * Check if there is an overlap between the current block and the player
+   * @param {Block} block Block object
+   * @param {bool} applyChanges Whether to move the player to prevent the overlap or not
+   * @returns {bool} Returns true if there is an overlap (the block cannot be placed)
    */
-  preventOverlap(block) {
-    var prevPos = this.pos.copy();
+  checkOverlap(block, applyChanges = false) {
+    // We store the original attributes of the player in case we reverse them (applyChanges = true)
+    const playerPos = this.pos.copy();
+    const playerBent = this.bent;
+
     // -- VERTICAL OVERLAP --
     var box = this.getBoundingBox();
 
-    if (this.colliding(box, block)) {
-      if (block.y + BLOCK_W > box.top) {
+    if (this.collidingEmpty(box, block)) {
+      const blockIsTopOfPlayer =
+        this.pos.y - this.h / 2 - (block.y + BLOCK_W / 2) >= 0;
+
+      if (blockIsTopOfPlayer) {
         // Block at the top, bend the player
         this.bent = true;
         this.h = PLAYER_H_SNEAK;
-      } else if (box.bottom > block.x) {
+
+      } else {
         // Block at the bottom, move the player to its top
-        this.pos.y = block.x;
+        this.pos.y = block.y;
       }
     }
 
     // -- HORIZONTAL OVERLAP --
-    var box = this.getBoundingBox();
+    box = this.getBoundingBox();
 
-    if (this.colliding(box, block)) {
+    if (this.collidingEmpty(box, block)) {
       // Whether the player is at the right of the block or not
-      var playerRightBlock =
+      const playerIsRightOfBlock =
         block.x + BLOCK_W / 2 - (this.pos.x + this.w / 2) >= 0;
 
-      if (box.right > block.x && playerRightBlock) {
+      if (box.right > block.x && playerIsRightOfBlock) {
         // Block at the right, move the player to the left
         this.pos.x = block.x - this.w;
-      } else if (block.x + BLOCK_W > box.left && !playerRightBlock) {
+      } else if (block.x + BLOCK_W > box.left && !playerIsRightOfBlock) {
         // Block at the left, move the player to the right
         this.pos.x = block.x + BLOCK_W;
       }
     }
 
     // -- CHECK IF THE PLAYER IS STILL COLLIDING --
-    // REFACTOR: When preventing the other overlaps,
-    // it automatically makes imposible for the player to collide
-    // with 'block'. However, it collides with the adjacent ones
-    // and checkVerticalCollisions() makes it move upwards
-    var box = this.getBoundingBox();
+    // When preventing overlaps with 'block',
+    // it may collide with the adjacent ones
+    box = this.getBoundingBox();
+    var range = this.getBoxRange(box);
 
-    if (this.colliding(box, block)) {
-      // Delete block
-      print("delete block");
-      inventory.breakBlock(block.x / BLOCK_W, block.y / BLOCK_W);
-      // Reset position
-      this.pos = prevPos.copy();
+    for (var i = range.left; i <= range.right; i++) {
+      for (var j = range.top; j <= range.bottom; j++) {
+        if (this.colliding(box, blocks[i][j])) {
+          // The new position collides with other block
+
+          // Reset attributes
+          if (!applyChanges) {
+            this.pos = playerPos.copy();
+            this.bent = playerBent;
+            this.h = playerBent ? PLAYER_H_SNEAK : PLAYER_H;
+          }
+          // There's an overlap
+          return true;
+        }
+      }
     }
+
+    // Reset attributes
+    if (!applyChanges) {
+      this.pos = playerPos.copy();
+      this.bent = playerBent;
+      this.h = playerBent ? PLAYER_H_SNEAK : PLAYER_H;
+    }
+    // There's no overlap
+    return false;
   }
 
-  breakBlock(i, j) {
-    var block = blocks[i][j];
+  breakBlock(block) {
     block.getDamage(this.breakingForce);
     if (block.life <= 0) {
       // Remove the block and restore block
       block.life = 1.0;
-      inventory.storeBlock(i, j);
+      inventory.storeBlock(block);
     }
   }
 
@@ -309,16 +321,22 @@ class Player {
   }
 
   /**
-   * Returns if the bounding box is colliding with a non-empty block
+   * Returns if the bounding boz is colliding with a block
    */
-  colliding(box, block) {
+  collidingEmpty(box, block) {
     return (
       box.left < block.x + BLOCK_W &&
       box.right > block.x &&
       box.top < block.y + BLOCK_W &&
-      box.bottom > block.y &&
-      !block.isEmpty
+      box.bottom > block.y
     );
+  }
+
+  /**
+   * Returns if the bounding box is colliding with a non-empty block
+   */
+  colliding(box, block) {
+    return this.collidingEmpty(box, block) && !block.isEmpty;
   }
 
   getBoundingBox() {

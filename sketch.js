@@ -1,16 +1,19 @@
+// -- OBJECTS --
 // 2D array for the blocks, initialized at createWorld()
 let blocks = [];
-// Inventory object
+// Inventory (stores blocks)
 let inventory;
-let items = [];
-let changedBlocks = [];
+// Hand object (selects blocks to break or place)
+let hand;
 let clouds = [];
-
 var player;
 
+let changedBlocks = [];
+
+
 var gravity; // Gravity vector
-// Hand global variables and player's center position
-var handPos, handX, handY, plyrPos;
+
+// If the game has started yet or not
 var initialized = false;
 
 // Start and translate variables
@@ -24,6 +27,8 @@ var mode = "home",
   seedInp,
   loadGame;
 var seed;
+
+var lastMouseAction = 0;
 
 // Image variables
 var t, tc, p, tr, h, font, n1, n2;
@@ -69,6 +74,9 @@ function setup() {
   // Creating the inventory
   inventory = new Inventory(6);
 
+  // Creating the hand object
+  hand = new Hand();
+
   // Creating the clouds
   for (var j = 0; j < CLOUDS_COUNT; j++) {
     var img = n1;
@@ -101,7 +109,6 @@ function setup() {
       if (!initialized) {
         // Initialize game
         createWorld();
-        drawHand(); // REFACTOR: Can be deleted?
         initialized = true;
       }
     });
@@ -162,6 +169,9 @@ function draw() {
   }
 }
 
+/**
+ * Main game loop, update objects and draw on the canvas
+ */
 function drawGame() {
   background("skyblue");
 
@@ -189,15 +199,17 @@ function drawGame() {
   translate(-trX, -trY);
   drawWorld();
 
-  if (mouseIsPressed) {
-    mouseActions();
+  if (mouseIsPressed && millis() - lastMouseAction >= MOUSE_ACTION_SLEEP_TIME) {
+    hand.actions();
+    lastMouseAction = millis();
   }
 
   player.applyForce(gravity);
   player.update();
   player.show();
 
-  drawHand();
+  hand.update();
+  hand.draw();
 
   pop();
 
@@ -286,7 +298,7 @@ function image2name(img) {
 }
 
 /**
- * Draw just the blocks near the player. Draw world limit lines near the edges
+ * Draw just the blocks near the player
  */
 function drawWorld() {
   // Half the number of blocks drawn on each "chunk"
@@ -313,46 +325,12 @@ function keyPressed() {
 
 function mousePressed() {
   if (mode == "game") {
-    mouseActions();
+    hand.actions();
   }
-}
-
-function mouseActions() {
-  let i = handX / BLOCK_W;
-  let j = handY / BLOCK_W;
-
-  // If the mouse is inside the canvas
-  if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && i < WORLD_H * BLOCK_W) {
-    if (!blocks[i][j].isEmpty && mouseButton == LEFT) {
-      player.breakBlock(i, j);
-    }
-    if (blocks[i][j].isEmpty && mouseButton == RIGHT) {
-      inventory.placeBlock(i, j);
-    }
-  }
-}
-
-function drawHand() {
-  // Center position of the player
-  plyrPos = createVector(
-    player.pos.x + player.w / 2,
-    player.pos.y - player.h / 2,
-  );
-  // Mouse translated position
-  var mouse = createVector(mouseX + trX, mouseY + trY);
-  // Vector pointing from the player to the mouse
-  handPos = p5.Vector.sub(mouse, plyrPos);
-  handPos.limit(HAND_MAX_LEN);
-  noFill();
-  stroke(255);
-  strokeWeight(2);
-  handX = plyrPos.x + handPos.x - ((plyrPos.x + handPos.x) % BLOCK_W);
-  handY = plyrPos.y + handPos.y - ((plyrPos.y + handPos.y) % BLOCK_W);
-  rect(handX, handY, BLOCK_W, BLOCK_W);
 }
 
 /**
- * Procedurally generates the 2D world 
+ * Procedurally generates the 2D world
  */
 function createWorld() {
   // Initializing the 2D array
