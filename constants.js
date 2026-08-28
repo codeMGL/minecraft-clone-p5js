@@ -4,8 +4,8 @@ const DEBUG = false;
 // --- WORLD VARIABLES ---
 
 // World constants (in number of blocks)
-const WORLD_W = DEBUG ? 70 : 200;
-const WORLD_H = DEBUG ? 40 : 60;
+const WORLD_W = DEBUG ? 70 : 1000;
+const WORLD_H = DEBUG ? 50 : 200;
 const BLOCK_W = 40;
 // Number of extra blocks to draw on the edges
 const EXTRA_BLOCKS = 2;
@@ -13,10 +13,10 @@ const EXTRA_BLOCKS = 2;
 // --- PLAYER VARIABLES ---
 
 // Velocity and acceleration
-const MAX_SPEED = DEBUG ? 6 : 5;
+const MAX_SPEED = DEBUG ? 10 : 5;
 const MIN_SPEED = DEBUG ? 1.5 : 1;
-const ACCELERATION = DEBUG ? 0.8 : 0.5;
-const JUMP_VEL = DEBUG ? 18 : 10;
+const ACCELERATION = DEBUG ? 1.0 : 0.5;
+const JUMP_VEL = DEBUG ? 20 : 12;
 const FRICTION = DEBUG ? 0.1 : 0.2;
 
 // Mass and volume

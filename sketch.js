@@ -16,7 +16,7 @@ var gravity; // Gravity vector
 var initialized = false;
 
 // Start and translate variables
-var stX, stY, trX, trY;
+var cameraX, cameraY;
 var txt = "",
   FPScount = 0;
 
@@ -53,8 +53,10 @@ function preload() {
 function setup() {
   const canvas = createCanvas(windowWidth, windowHeight);
 
-  randomSeed(42);
-  noiseSeed(42);
+  if (DEBUG) {
+    randomSeed(42);
+    noiseSeed(42);
+  }
 
   // Disable right-click context menu inside the canvas
   canvas.elt.addEventListener("contextmenu", (e) => {
@@ -65,15 +67,9 @@ function setup() {
   textFont(font);
   gravity = createVector(0, GRAVITY_FORCE);
 
-  // Block indexes where they start to generate the world
-  stX = 300; // 300
-  stY = 50; // 50
-
-  // stX = random(20, WORLD_W * BLOCK_W);
-  // stX = round((WORLD_W * BLOCK_W) / 2);
-  stX = width / 2;
-
-  player = new Player(stX, -20);
+  var startX = (WORLD_W * BLOCK_W) / 2;
+  var startY = (WORLD_H * BLOCK_W) / 2 - 10 * BLOCK_W;
+  player = new Player(startX, startY);
 
   // Creating the inventory
   inventory = new Inventory(6);
@@ -98,7 +94,7 @@ function setup() {
   // DOM elements
   playImg = select("#playB");
   playImg
-    .position(width / 2, 270)
+    .position(width / 2, 400)
     .hide()
     .mouseOver(() => {
       playImg.size(149 * 1.1, 51 * 1.1);
@@ -118,7 +114,7 @@ function setup() {
     });
   settingsImg = select("#settingsB");
   settingsImg
-    .position(width / 2, 240)
+    .position(width / 2, 480)
     .hide()
     .mouseOver(() => {
       if (mode != "settings") {
@@ -180,27 +176,23 @@ function drawGame() {
   background("skyblue");
 
   push();
-  // (i, j) indexes of the player minus the center of the world
-  // It's used to as the starting coordinates of the world
-  // They start at (playerI - trX, playerJ - trY)
-  var playerI = round(player.pos.x / BLOCK_W);
-  var playerJ = round(player.pos.y / BLOCK_W);
 
-  // Translate coordinates to draw blocks
+  // Translate coordinates to draw the world (player, blocks and clouds)
   // Blocks are drawn at: player.pos +- width/2, so all the canvas is filled
-  trX = round(player.pos.x - width / 2);
-  trY = round(player.pos.y - height / 2);
+  cameraX = round(player.pos.x - width / 2);
+  cameraY = round(player.pos.y - height / 2);
 
   // Drawing clouds at the "top" of the screen
   push();
-  translate(0, -trY);
+  translate(0, -cameraY);
   for (var c of clouds) {
     c.restart();
     c.show();
   }
   pop();
 
-  translate(-trX, -trY);
+  // The camera follows the player
+  translate(-cameraX, -cameraY);
   drawWorld();
 
   if (mouseIsPressed && millis() - lastMouseAction >= MOUSE_ACTION_SLEEP_TIME) {
@@ -228,22 +220,22 @@ function drawGame() {
   FPScount++;
   noStroke();
   fill(0);
-  textSize(22);
-  text(txt, width - 60, 20);
+  textSize(26);
+  text(txt, width - 80, 30);
 
   // Drawing the custom cursor
   noCursor();
   fill(255);
-  circle(mouseX, mouseY, 8);
+  circle(mouseX, mouseY, 10);
 }
 
 function drawHome() {
   background(0);
   imageMode(CENTER);
   var scl = 0.8;
-  image(title, width / 2, 120, 530 / scl, 125 / scl);
+  image(title, width / 2, 180, 530 / scl, 125 / scl);
   playImg.show();
-  settingsImg.position(width / 2, 350).show();
+  settingsImg.position(width / 2, 480).show();
   loadGame.hide();
   saveGame.hide();
   seedInp.hide();
@@ -262,7 +254,8 @@ function drawSettings() {
     seedInp.html("42");
     var px = round(player.pos.x);
     var py = round(player.pos.y);
-    var game = `x${stX}y${stY}s${seed}x${px}y${py}
+    // var game = `x${stX}y${stY}s${seed}x${px}y${py}
+    var game = `s${seed}x${px}y${py}
 `;
     for (var i = 0; i < changedBlocks.length; i++) {
       var block = changedBlocks[i];
@@ -350,23 +343,28 @@ function createWorld() {
   }
 
   // REFACTOR
-  var max = WORLD_H;
   var sX = WORLD_W;
   var noiseScl = 0.1;
   for (var i = 0; i < WORLD_W; i++) {
     // Trees
-    var start = noise(i * noiseScl);
-    start = round(map(start, 0, 1, 13, 16));
+    // 'start': Y coordinate to start creating terrain (dirt)
+    const startNoise = noise(i * noiseScl);
+    const terrainNoise = 7;
+    const start = round(
+      map(startNoise, 0, 1, WORLD_H / 2, WORLD_H / 2 + terrainNoise),
+    );
 
-    var noise1 = noise((5 + i) * noiseScl * 100);
+    const noise1 = noise((5 + i) * noiseScl * 100);
     if (noise1 >= 0.7) {
       var count = 1;
       // Leaves
-      for (var tree = round(random(3, 6)); tree >= 2; tree--) {
+      // Tree height goes from 3 to 6 blocks
+      for (var tree = round(random(3, 8)); tree >= 2; tree--) {
         blocks[i][start - 1].type = tr; // Tronco
         blocks[i][start - tree].type = tr; // Tronco
+        // Number of leaves at each size of the trunk
         var num = min(pow(count, 2), 2);
-        for (var leaf = 0 - num; leaf <= num; leaf++) {
+        for (var leaf = -num; leaf <= num; leaf++) {
           var x = i + leaf;
           if (i + leaf < 0) {
             x = 0;
@@ -374,7 +372,7 @@ function createWorld() {
           if (i + leaf > sX - 1) {
             x = sX - 1;
           }
-          blocks[x][start - tree].type = h;
+          blocks[x][start - tree].type = h; // Hoja
         }
         count++;
       }
@@ -386,10 +384,12 @@ function createWorld() {
     }
 
     // Stone
-    var n = noise(i * noiseScl);
-    var s = round(random(16, 20));
-    n = round(map(n, 0, 1, s, s + 8));
-    for (var rnd2 = n; rnd2 < max; rnd2++) {
+    const stoneStartIndex = WORLD_H / 2 + terrainNoise;
+    const stoneNoise = 15;
+    var n = noise((15 + i) * noiseScl * 2);
+    n = round(map(n, 0, 1, stoneStartIndex, stoneStartIndex + stoneNoise));
+    // Draw a stone vertical line from 'n' to the bottom
+    for (var rnd2 = n; rnd2 < WORLD_H; rnd2++) {
       blocks[i][rnd2].type = p; // Piedra
     }
   }

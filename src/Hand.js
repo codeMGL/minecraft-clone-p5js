@@ -28,7 +28,7 @@ class Hand {
       player.pos.y - player.h / 2,
     );
     // Mouse translated position
-    var mouse = createVector(mouseX + trX, mouseY + trY);
+    var mouse = createVector(mouseX + cameraX, mouseY + cameraY);
     // Vector pointing from the player to the mouse
     var pos = p5.Vector.sub(mouse, plyrPos).limit(HAND_MAX_LEN);
     this.x = plyrPos.x + pos.x - ((plyrPos.x + pos.x) % BLOCK_W);
