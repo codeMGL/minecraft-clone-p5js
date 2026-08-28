@@ -15,10 +15,21 @@ class Block {
   draw() {
     if (!this.isEmpty) {
       imageMode(CORNER);
-      image(this.type, this.x, this.y, BLOCK_W, BLOCK_W);
 
+      // Draw the block
+      var img = blockImages[this.type];
+
+      if (this.type == "dirt") {
+        const topBlock = blocks[this.x / BLOCK_W][this.y / BLOCK_W - 1];
+        if (topBlock.isEmpty) {
+          // We draw a dirt & grass block instead
+          img = blockImages["grass"];
+        }
+      }
+      image(img, this.x, this.y, BLOCK_W, BLOCK_W);
+
+      // Draw the crack images
       if (this.life < 1) {
-        // We draw the crack images
         var crackLevel = floor((1 - this.life) * 10);
         image(crackImages[crackLevel], this.x, this.y, BLOCK_W, BLOCK_W);
       }

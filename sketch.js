@@ -30,17 +30,18 @@ var seed;
 var lastMouseAction = 0;
 
 // Image variables
-var t, tc, p, tr, h, font, n1, n2;
+var blockImages = {};
+var cloudImages = [];
 var crackImages = [];
 var title, settingsImg, playImg;
 function preload() {
-  t = loadImage("images/Tierra.jpeg");
-  tc = loadImage("images/Tierra_Cesped.jpeg");
-  p = loadImage("images/Piedra.jpeg");
-  tr = loadImage("images/Tronco.jpeg");
-  h = loadImage("images/Hoja.png");
-  n1 = loadImage("images/nube1.png");
-  n2 = loadImage("images/nube2.png");
+  blockImages["dirt"] = loadImage("images/dirt.jpeg");
+  blockImages["grass"] = loadImage("images/dirt_grass.jpeg");
+  blockImages["stone"] = loadImage("images/stone.jpeg");
+  blockImages["trunk"] = loadImage("images/trunk.jpeg");
+  blockImages["leaf"] = loadImage("images/leaf.png");
+  cloudImages.push(loadImage("images/cloud_1.png"));
+  cloudImages.push(loadImage("images/cloud_2.png"));
   title = loadImage("images/MY-CRAFT.png");
 
   for (var i = 0; i <= 9; i++) {
@@ -79,16 +80,7 @@ function setup() {
 
   // Creating the clouds
   for (var j = 0; j < CLOUDS_COUNT; j++) {
-    var img = n1;
-    if (random(1) > 0.5) {
-      img = n2;
-    }
-    clouds[j] = new Cloud(
-      img,
-      random(20, width + 100),
-      random(170, 230),
-      random(-1, -0.2),
-    );
+    clouds[j] = new Cloud();
   }
 
   // DOM elements
@@ -360,8 +352,8 @@ function createWorld() {
       // Leaves
       // Tree height goes from 3 to 6 blocks
       for (var tree = round(random(3, 8)); tree >= 2; tree--) {
-        blocks[i][start - 1].type = tr; // Tronco
-        blocks[i][start - tree].type = tr; // Tronco
+        blocks[i][start - 1].type = "trunk";
+        blocks[i][start - tree].type = "trunk";
         // Number of leaves at each size of the trunk
         var num = min(pow(count, 2), 2);
         for (var leaf = -num; leaf <= num; leaf++) {
@@ -372,7 +364,7 @@ function createWorld() {
           if (i + leaf > sX - 1) {
             x = sX - 1;
           }
-          blocks[x][start - tree].type = h; // Hoja
+          blocks[x][start - tree].type = "leaf";
         }
         count++;
       }
@@ -380,7 +372,7 @@ function createWorld() {
 
     // Dirt
     for (var rnd = start; rnd < WORLD_H; rnd++) {
-      blocks[i][rnd].type = t; // Tierra
+      blocks[i][rnd].type = "dirt";
     }
 
     // Stone
@@ -390,7 +382,7 @@ function createWorld() {
     n = round(map(n, 0, 1, stoneStartIndex, stoneStartIndex + stoneNoise));
     // Draw a stone vertical line from 'n' to the bottom
     for (var rnd2 = n; rnd2 < WORLD_H; rnd2++) {
-      blocks[i][rnd2].type = p; // Piedra
+      blocks[i][rnd2].type = "stone";
     }
   }
 }

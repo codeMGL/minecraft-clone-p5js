@@ -48,7 +48,7 @@ class Inventory {
         push();
         var imgW = itemW - strokeW / 2;
         var txtSize = 25;
-        image(item.type, x + strokeW / 2, h + strokeW / 2, imgW, imgW);
+        image(blockImages[item.type], x + strokeW / 2, h + strokeW / 2, imgW, imgW);
         noStroke();
         fill(255);
         textSize(txtSize);
