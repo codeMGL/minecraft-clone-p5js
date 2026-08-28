@@ -51,7 +51,7 @@ function preload() {
 }
 
 function setup() {
-  const canvas = createCanvas(CANVAS_W * SCALE, CANVAS_H * SCALE);
+  const canvas = createCanvas(windowWidth, windowHeight);
 
   randomSeed(42);
   noiseSeed(42);
@@ -286,6 +286,10 @@ function drawSettings() {
   text("CLICK 'H' TO GO HOME", width / 2, 300);
 }
 
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
 function image2name(img) {
   if (img == t) {
     return "t";
@@ -306,8 +310,8 @@ function image2name(img) {
  */
 function drawWorld() {
   // Half the number of blocks drawn on each "chunk"
-  var halfW = floor(CANVAS_W / BLOCK_W / 2);
-  var halfH = floor(CANVAS_H / BLOCK_W / 2);
+  var halfW = floor(width / BLOCK_W / 2) + EXTRA_BLOCKS;
+  var halfH = floor(height / BLOCK_W / 2) + EXTRA_BLOCKS;
 
   var playerI = max(0, floor(player.pos.x / BLOCK_W));
   var playerJ = max(0, floor(player.pos.y / BLOCK_W));

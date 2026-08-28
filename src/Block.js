@@ -12,13 +12,6 @@ class Block {
     return this.type == null;
   }
 
-  /* Debug method */
-  d(r, g, b) {
-    stroke(r, g, b);
-    noFill();
-    rect(this.x, this.y, BLOCK_W);
-  }
-
   draw() {
     if (!this.isEmpty) {
       imageMode(CORNER);
@@ -27,7 +20,6 @@ class Block {
       if (this.life < 1) {
         // We draw the crack images
         var crackLevel = floor((1 - this.life) * 10);
-        print(crackLevel);
         image(crackImages[crackLevel], this.x, this.y, BLOCK_W, BLOCK_W);
       }
     }
@@ -37,14 +29,18 @@ class Block {
 
   getDamage(amount) {
     this.life = constrain(this.life - amount, 0, 1);
+    if (this.life < 0.001) {
+      this.life = 0;
+    }
     this.lastDamage = millis();
   }
 
   regenerateLife() {
-    const delay = 3000; // espera 3 segundos tras recibir daño
+    // Wait 3 seconds
+    const delay = 3000;
 
     if (millis() - this.lastDamage > delay && this.life < 1) {
-      this.life = constrain(this.life + 0.01, 0, 1);
+      this.life = constrain(this.life + 0.005, 0, 1);
     }
   }
 }
