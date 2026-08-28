@@ -10,7 +10,6 @@ var player;
 
 let changedBlocks = [];
 
-
 var gravity; // Gravity vector
 
 // If the game has started yet or not
@@ -32,6 +31,7 @@ var lastMouseAction = 0;
 
 // Image variables
 var t, tc, p, tr, h, font, n1, n2;
+var crackImages = [];
 var title, settingsImg, playImg;
 function preload() {
   t = loadImage("images/Tierra.jpeg");
@@ -42,6 +42,10 @@ function preload() {
   n1 = loadImage("images/nube1.png");
   n2 = loadImage("images/nube2.png");
   title = loadImage("images/MY-CRAFT.png");
+
+  for (var i = 0; i <= 9; i++) {
+    crackImages.push(loadImage("images/destroy_stage_" + i + ".png"));
+  }
 
   font = loadFont("fonts/Pixel.ttf");
 }

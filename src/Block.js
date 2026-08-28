@@ -6,9 +6,6 @@ class Block {
 
     this.life = 1.0;
     this.lastDamage = 0;
-
-    this.crackX = random(BLOCK_W);
-    this.crackY = random(BLOCK_W);
   }
 
   get isEmpty() {
@@ -17,26 +14,21 @@ class Block {
 
   /* Debug method */
   d(r, g, b) {
-    stroke(r, g, b)
+    stroke(r, g, b);
     noFill();
-    rect(this.x, this.y, BLOCK_W)
+    rect(this.x, this.y, BLOCK_W);
   }
 
   draw() {
-    if (this.type != null) {
+    if (!this.isEmpty) {
       imageMode(CORNER);
       image(this.type, this.x, this.y, BLOCK_W, BLOCK_W);
 
       if (this.life < 1) {
-        strokeWeight(3);
-        stroke(0);
-
-        line(
-          this.x + 3,
-          this.y + 3,
-          this.x + this.crackX,
-          this.y + this.crackY,
-        );
+        // We draw the crack images
+        var crackLevel = floor((1 - this.life) * 10);
+        print(crackLevel);
+        image(crackImages[crackLevel], this.x, this.y, BLOCK_W, BLOCK_W);
       }
     }
 
