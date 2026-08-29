@@ -11,9 +11,6 @@ class Player {
     this.acc = createVector(0, 0);
     this.dir = "";
 
-    this.i = round(x / BLOCK_W);
-    this.j = round(y / BLOCK_W);
-
     this.bent = false;
     this.wasBent = false;
 
@@ -43,18 +40,21 @@ class Player {
       // 'S' / 'Shift'
       this.bent = true;
     } else if (this.bent) {
-      // Check if the player can be straight (this.bent = false);
-      var newJ = max(0, floor((this.pos.y - PLAYER_H) / BLOCK_W));
+      // Check if the player can be straight;
+      this.bent = false;
+      // Temporarily increase the height to check collisions
+      this.h = PLAYER_H;
       var box = this.getBoundingBox();
-      box.top = box.bottom - PLAYER_H;
       var range = this.getBoxRange(box);
 
-      this.bent = false;
       for (var i = range.left; i <= range.right; i++) {
-        if (this.colliding(box, blocks[i][newJ])) {
-          // It will collide
-          this.bent = true;
-          break;
+        for (var j = range.top; j <= range.bottom; j++) {
+          if (this.colliding(box, blocks[i][j])) {
+            // It will collide, we revert the changes
+            this.bent = true;
+            this.h = PLAYER_H_SNEAK;
+            break;
+          }
         }
       }
     }
@@ -138,12 +138,10 @@ class Player {
     var box = this.getBoundingBox();
     // Add a small threshold to make the bounding box touch the ground
     box.bottom += 0.01;
-
     var range = this.getBoxRange(box);
-    var j = max(0, floor(box.bottom / BLOCK_W));
 
     for (var i = range.left; i <= range.right; i++) {
-      if (this.colliding(box, blocks[i][j])) {
+      if (this.colliding(box, blocks[i][range.bottom])) {
         return true;
       }
     }
@@ -245,7 +243,6 @@ class Player {
         // Block at the top, bend the player
         this.bent = true;
         this.h = PLAYER_H_SNEAK;
-
       } else {
         // Block at the bottom, move the player to its top
         this.pos.y = block.y;
@@ -321,7 +318,7 @@ class Player {
   }
 
   /**
-   * Returns if the bounding boz is colliding with a block
+   * Returns if the bounding box is colliding with any block
    */
   collidingEmpty(box, block) {
     return (
@@ -349,11 +346,13 @@ class Player {
   }
 
   getBoxRange(box) {
+    const leftTopCorner = worldToGrid(box.left, box.top);
+    const rightBottomCorner = worldToGrid(box.right, box.bottom);
     return {
-      left: max(0, floor(box.left / BLOCK_W)),
-      right: max(0, floor(box.right / BLOCK_W)),
-      top: max(0, floor(box.top / BLOCK_W)),
-      bottom: max(0, floor(box.bottom / BLOCK_W)),
+      left: leftTopCorner.i,
+      right: rightBottomCorner.i,
+      top: leftTopCorner.j,
+      bottom: rightBottomCorner.j,
     };
   }
 }

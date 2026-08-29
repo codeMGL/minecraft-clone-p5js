@@ -20,9 +20,9 @@ class Block {
       var img = blockImages[this.type];
 
       if (this.type == "dirt") {
-        const topBlock = blocks[this.x / BLOCK_W][this.y / BLOCK_W - 1];
-        if (topBlock.isEmpty) {
-          // We draw a dirt & grass block instead
+        const { i, j } = worldToGrid(this.x, this.y);
+        // If the block above is air, draw a grass block instead
+        if (blocks[i][j - 1].isEmpty) {
           img = blockImages["grass"];
         }
       }

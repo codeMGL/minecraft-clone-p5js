@@ -25,7 +25,7 @@ class Inventory {
     }
   }
 
-  draw() {
+  show() {
     imageMode(CORNER);
     var itemW = 35;
     var w = this.length * itemW;
@@ -71,21 +71,21 @@ class Inventory {
    * Mark the block as 'null' and store it in the inventory if it's not full
    */
   storeBlock(block) {
-    var blockType = block.type;
     // REFACTOR: changedBlocks
-    var newBlock = {
-      i: block.x / BLOCK_W,
-      j: block.y / BLOCK_W,
+    const { i, j } = worldToGrid(block.x, block.y);
+    const changedBlock = {
+      i,
+      j,
       preType: block.type,
       actualType: null,
     };
-    changedBlocks.push(newBlock);
+    changedBlocks.push(changedBlock);
     ////
+    var blockType = block.type;
     block.type = null;
 
     // Store block into the array
-    for (var i = 0; i < this.length; i++) {
-      var item = this.items[i];
+    for (const item of this.items) {
       if (item.type == null) {
         item.type = blockType;
         item.count++;
@@ -108,14 +108,15 @@ class Inventory {
 
   placeBlock(block) {
     if (this.current.type != null) {
-      // REFACTOR: Add block to changedBlocks
-      var newBlock = {
-        i: block.x / BLOCK_W,
-        j: block.y / BLOCK_W,
-        preType: null,
+      // REFACTOR: changedBlocks
+      const { i, j } = worldToGrid(block.x, block.y);
+      const changedBlock = {
+        i,
+        j,
+        preType: block.type,
         actualType: this.current.type,
       };
-      changedBlocks.push(newBlock);
+      changedBlocks.push(changedBlock);
       /////
 
       block.type = this.current.type;

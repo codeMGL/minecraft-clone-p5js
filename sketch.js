@@ -214,12 +214,12 @@ function drawGame() {
   player.show();
 
   hand.update();
-  hand.draw();
+  hand.show();
 
   pop();
 
   // Inventory
-  inventory.draw();
+  inventory.show();
 
   // Drawing FPS
   if (FPScount >= 50) {
@@ -297,8 +297,8 @@ function drawWorld() {
   var halfW = floor(width / BLOCK_W / 2) + EXTRA_BLOCKS;
   var halfH = floor(height / BLOCK_W / 2) + EXTRA_BLOCKS;
 
-  var playerI = max(0, floor(player.pos.x / BLOCK_W));
-  var playerJ = max(0, floor(player.pos.y / BLOCK_W));
+  const { i: playerI, j: playerJ } = worldToGrid(player.pos.x, player.pos.y);
+
   for (var i = -halfW; i < halfW; i++) {
     for (var j = -halfH; j < halfH; j++) {
       var blockI = max(0, min(playerI + i, WORLD_W - 1));

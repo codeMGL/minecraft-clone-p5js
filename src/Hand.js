@@ -1,41 +1,42 @@
 class Hand {
   constructor() {
-    this.x = 0;
-    this.y = 0;
+    this.i = 0;
+    this.j = 0;
   }
 
   /**
    * Whether it's posible to place a block or not
    */
   get canPlace() {
-    const i = this.x / BLOCK_W;
-    const j = this.y / BLOCK_W;
-
     // Do not check if there's no selected object
     if (inventory.current.type == null) return true;
 
-    // If the mouse is inside the canvas
-    if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && j < WORLD_H * BLOCK_W) {
+    // If the mouse is inside the world
+    if (isValidGridPos(this.i, this.j)) {
       // If there's an overlap, it means the block cannot be placed
-      return !player.checkOverlap(blocks[i][j], false);
+      return !player.checkOverlap(blocks[this.i][this.j], false);
     }
+
+    return false;
   }
 
   update() {
     // Center position of the player
-    var plyrPos = createVector(
+    const plyrPos = createVector(
       player.pos.x + player.w / 2,
       player.pos.y - player.h / 2,
     );
     // Mouse translated position
-    var mouse = createVector(mouseX + cameraX, mouseY + cameraY);
+    const mouse = createVector(mouseX + cameraX, mouseY + cameraY);
     // Vector pointing from the player to the mouse
-    var pos = p5.Vector.sub(mouse, plyrPos).limit(HAND_MAX_LEN);
-    this.x = plyrPos.x + pos.x - ((plyrPos.x + pos.x) % BLOCK_W);
-    this.y = plyrPos.y + pos.y - ((plyrPos.y + pos.y) % BLOCK_W);
+    const playerToMouse = p5.Vector.sub(mouse, plyrPos).limit(HAND_MAX_LEN);
+    const handPos = p5.Vector.add(plyrPos, playerToMouse);
+    ({ i: this.i, j: this.j } = worldToGrid(handPos.x, handPos.y));
+
   }
 
-  draw() {
+  show() {
+    push();
     noFill();
     stroke(255);
     strokeWeight(2);
@@ -43,19 +44,24 @@ class Hand {
       stroke(255, 0, 0);
     }
 
-    rect(this.x, this.y, BLOCK_W, BLOCK_W);
+    const { x, y } = gridToWorld(this.i, this.j);
+    rect(
+      x,
+      y,
+      BLOCK_W,
+      BLOCK_W,
+    );
+    pop();
   }
 
   /**
    * Check for mouse actions: break block, place block
    */
   actions() {
-    var i = hand.x / BLOCK_W;
-    var j = hand.y / BLOCK_W;
-    var block = blocks[i][j];
+    var block = blocks[this.i][this.j];
 
-    // If the mouse is inside the canvas
-    if (i > 0 && i < WORLD_W * BLOCK_W && j > 0 && j < WORLD_H * BLOCK_W) {
+    // If the mouse is inside the world
+    if (isValidGridPos(this.i, this.j)) {
       if (mouseButton == LEFT && !block.isEmpty) {
         player.breakBlock(block);
       }
