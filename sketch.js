@@ -302,6 +302,17 @@ function drawWorld() {
       }
     }
   }
+
+  // Draw world edges
+  noFill();
+  stroke(255, 0, 0);
+  strokeWeight(4);
+  const topLeftCorner = snapWorld(width / 2, height / 2);
+  const rectSize = snapWorld(
+    WORLD_W * BLOCK_W - width,
+    WORLD_H * BLOCK_W - height,
+  );
+  rect(topLeftCorner.x, topLeftCorner.y, rectSize.x, rectSize.y);
 }
 
 function keyPressed() {
@@ -318,6 +329,12 @@ function mousePressed() {
   } else if (mode == "settings") {
     backButton.click();
   }
+}
+
+function mouseWheel(event) {
+  // Scroll through the items on Inventory
+  const indexChange = Math.sign(event.deltaY);
+  inventory.scroll(indexChange);
 }
 
 /**

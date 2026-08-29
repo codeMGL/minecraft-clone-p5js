@@ -64,7 +64,7 @@ class Inventory {
 
       // Item white square
       noFill();
-      stroke(255)
+      stroke(255);
       rect(x, this.h, this.itemW);
     }
     // Selected item square
@@ -113,5 +113,12 @@ class Inventory {
         this.current.type = null;
       }
     }
+  }
+
+  /**
+   * Change the selected index item based on mouse wheel
+   */
+  scroll(dir) {
+    this.selected = max(0, min(this.selected + dir, this.length - 1));
   }
 }

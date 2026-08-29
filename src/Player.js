@@ -113,17 +113,24 @@ class Player {
     this.acc.set(0, 0);
 
     // -- CONSTRAIN PLAYER'S POSITION --
-    this.pos.x = constrain(
-      this.pos.x,
-      width / 2,
-      WORLD_W * BLOCK_W - this.w - width / 2,
+    // Calculate the block position at which the player touches the world bounds
+    let { x: minScreenW, y: minScreenH } = snapWorld(width / 2, height / 2);
+    let { x: maxScreenW, y: maxScreenH } = snapWorld(
+      WORLD_W * BLOCK_W - this.w - minScreenW,
+      WORLD_H * BLOCK_W - this.h - minScreenH,
     );
-    var blockOffset = 0;
-    this.pos.y = constrain(
-      this.pos.y,
-      this.h + height / 2,
-      WORLD_H * BLOCK_W - height / 2,
-    );
+
+    // Speed should be null if the player is at the world edge
+    if (this.pos.x <= minScreenW || this.pos.x >= maxScreenW - this.w) {
+      this.currentSpeed = 0;
+      this.vel.x = 0;
+    }
+    if (this.pos.y <= minScreenH + this.h || this.pos.y >= maxScreenH) {
+      this.vel.y = 0;
+    }
+    // Constrain position
+    this.pos.x = constrain(this.pos.x, minScreenW, maxScreenW - this.w);
+    this.pos.y = constrain(this.pos.y, minScreenH + this.h, maxScreenH);
   }
 
   canJump() {

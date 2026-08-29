@@ -18,3 +18,11 @@ function gridToWorld(i, j) {
 function isValidGridPos(i, j) {
   return i >= 0 && i < WORLD_W && j >= 0 && j < WORLD_H;
 }
+
+/**
+ * Snap world pixel coordinates to block top-left corners
+ */
+function snapWorld(x, y) {
+  const { i, j } = worldToGrid(x, y);
+  return { x: i * BLOCK_W, y: j * BLOCK_W };
+}
