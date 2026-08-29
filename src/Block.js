@@ -16,7 +16,7 @@ class Block {
     if (!this.isEmpty) {
       
       // Draw the block
-      var img = blockImages[this.type];
+      let img = blockImages[this.type];
 
       if (this.type == "dirt") {
         const { i, j } = worldToGrid(this.x, this.y);
@@ -30,7 +30,7 @@ class Block {
 
       // Draw the crack images
       if (this.life < 1) {
-        var crackLevel = min(floor((1 - this.life) * 10), 9);
+        const crackLevel = min(floor((1 - this.life) * 10), 9);
         image(crackImages[crackLevel], this.x, this.y, BLOCK_W, BLOCK_W);
       }
     }

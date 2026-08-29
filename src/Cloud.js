@@ -1,6 +1,6 @@
 class Cloud {
   constructor() {
-    var imgSize = random(0.1, 0.5);
+    const imgSize = random(0.1, 0.5);
     this.img = this.getImage();
     this.w = this.img.width * imgSize;
     this.h = this.img.height * imgSize;
@@ -16,12 +16,11 @@ class Cloud {
   }
 
   getImage() {
-    var imgIndex = round(random(cloudImages.length - 1));
+    const imgIndex = round(random(cloudImages.length - 1));
     return cloudImages[imgIndex];
   }
 
   show() {
-    rect(this.x, this.y, this.w, this.h);
     image(this.img, this.x, this.y, this.w, this.h);
   }
 

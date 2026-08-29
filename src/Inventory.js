@@ -7,6 +7,12 @@ class Inventory {
     this.bckColor = color(139);
 
     this.reset();
+
+    this.itemW = 35;
+    this.w = this.length * this.itemW;
+    this.h = 30;
+    this.strokeW = 2;
+    this.txtSize = 25;
   }
 
   /**
@@ -17,7 +23,7 @@ class Inventory {
   }
 
   reset() {
-    for (var i = 0; i < this.length; i++) {
+    for (let i = 0; i < this.length; i++) {
       this.items[i] = {
         type: null,
         count: 0,
@@ -26,62 +32,54 @@ class Inventory {
   }
 
   show() {
+    push();
     imageMode(CORNER);
-    var itemW = 35;
-    var w = this.length * itemW;
-    var h = 30;
-    var strokeW = 2;
 
     // Big inventory rect
     fill(this.bckColor);
     stroke(234);
-    strokeWeight(strokeW);
-    rect((width - w) / 2, h, this.length * itemW, itemW);
+    strokeWeight(this.strokeW);
+    rect((width - this.w) / 2, this.h, this.length * this.itemW, this.itemW);
 
     // Individual item squares
-    for (var i = 0; i < this.length; i++) {
-      var item = this.items[i];
-      var x = (width - w) / 2 + itemW * i;
+    for (let i = 0; i < this.length; i++) {
+      const item = this.items[i];
+      const x = (width - this.w) / 2 + this.itemW * i;
 
       // Item image
       if (item.type != undefined) {
-        push();
-        var imgW = itemW - strokeW / 2;
-        var txtSize = 25;
-        image(blockImages[item.type], x + strokeW / 2, h + strokeW / 2, imgW, imgW);
+        const imgW = this.itemW - this.strokeW / 2;
+        image(
+          blockImages[item.type],
+          x + this.strokeW / 2,
+          this.h + this.strokeW / 2,
+          imgW,
+          imgW,
+        );
         noStroke();
         fill(255);
-        textSize(txtSize);
-        text(item.count, x, h + itemW + txtSize);
-        pop();
+        textSize(this.txtSize);
+        text(item.count, x, this.h + this.itemW + this.txtSize);
       }
 
       // Item white square
       noFill();
-      rect(x, h, itemW);
+      stroke(255)
+      rect(x, this.h, this.itemW);
     }
     // Selected item square
-    var x = (width - w) / 2 + itemW * this.selected;
+    const x = (width - this.w) / 2 + this.itemW * this.selected;
     stroke(0);
     noFill();
-    rect(x, h, itemW);
+    rect(x, this.h, this.itemW);
+    pop();
   }
 
   /**
    * Mark the block as 'null' and store it in the inventory if it's not full
    */
   storeBlock(block) {
-    // REFACTOR: changedBlocks
-    const { i, j } = worldToGrid(block.x, block.y);
-    const changedBlock = {
-      i,
-      j,
-      preType: block.type,
-      actualType: null,
-    };
-    changedBlocks.push(changedBlock);
-    ////
-    var blockType = block.type;
+    const blockType = block.type;
     block.type = null;
 
     // -- Store block into the array --
@@ -103,27 +101,10 @@ class Inventory {
         return;
       }
     }
-
-    // REFACTOR: changedBlocks
-    // var type = blocks[handX / w][handY / w].type;
-    // var itemB = new Item(handX, handY, type);
-    // items.push(itemB);
-    /////
   }
 
   placeBlock(block) {
     if (this.current.type != null) {
-      // REFACTOR: changedBlocks
-      const { i, j } = worldToGrid(block.x, block.y);
-      const changedBlock = {
-        i,
-        j,
-        preType: block.type,
-        actualType: this.current.type,
-      };
-      changedBlocks.push(changedBlock);
-      /////
-
       block.type = this.current.type;
 
       this.current.count--;

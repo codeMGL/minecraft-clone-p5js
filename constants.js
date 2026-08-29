@@ -4,8 +4,8 @@ const DEBUG = false;
 // --- WORLD VARIABLES ---
 
 // World constants (in number of blocks)
-const WORLD_W = DEBUG ? 70 : 1000;
-const WORLD_H = DEBUG ? 50 : 200;
+const WORLD_W = DEBUG ? 100 : 2000;
+const WORLD_H = DEBUG ? 90 : 500;
 const BLOCK_W = 40;
 // Number of extra blocks to draw on the edges
 const EXTRA_BLOCKS = 2;
@@ -33,7 +33,7 @@ const HAND_BREAK_FORCE = DEBUG ? 1.0 : 0.2;
 const HAND_MAX_LEN = BLOCK_W * 2;
 
 // Time (in milliseconds) that needs to pass until the next mouse action is listened
-const MOUSE_ACTION_SLEEP_TIME = 100;
+const MOUSE_ACTION_SLEEP_TIME = DEBUG ? 0 : 100;
 
 // --- PHYSICS & OTHER VARIABLES ---
 

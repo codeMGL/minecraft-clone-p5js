@@ -44,11 +44,11 @@ class Player {
       this.bent = false;
       // Temporarily increase the height to check collisions
       this.h = PLAYER_H;
-      var box = this.getBoundingBox();
-      var range = this.getBoxRange(box);
+      const box = this.getBoundingBox();
+      const range = this.getBoxRange(box);
 
-      for (var i = range.left; i <= range.right; i++) {
-        for (var j = range.top; j <= range.bottom; j++) {
+      for (let i = range.left; i <= range.right; i++) {
+        for (let j = range.top; j <= range.bottom; j++) {
           if (this.colliding(box, blocks[i][j])) {
             // It will collide, we revert the changes
             this.bent = true;
@@ -113,16 +113,16 @@ class Player {
     this.acc.set(0, 0);
 
     // -- CONSTRAIN PLAYER'S POSITION --
-    var blockOffset = HAND_MAX_LEN * 2;
     this.pos.x = constrain(
       this.pos.x,
-      blockOffset,
-      WORLD_W * BLOCK_W - this.w - blockOffset,
+      width / 2,
+      WORLD_W * BLOCK_W - this.w - width / 2,
     );
+    var blockOffset = 0;
     this.pos.y = constrain(
       this.pos.y,
-      this.h + blockOffset,
-      WORLD_H * BLOCK_W - blockOffset,
+      this.h + height / 2,
+      WORLD_H * BLOCK_W - height / 2,
     );
   }
 
@@ -131,12 +131,12 @@ class Player {
       return false;
     }
 
-    var box = this.getBoundingBox();
+    let box = this.getBoundingBox();
     // Add a small threshold to make the bounding box touch the ground
     box.bottom += 0.01;
-    var range = this.getBoxRange(box);
+    let range = this.getBoxRange(box);
 
-    for (var i = range.left; i <= range.right; i++) {
+    for (let i = range.left; i <= range.right; i++) {
       if (
         isValidGridPos(i, range.bottom) &&
         this.colliding(box, blocks[i][range.bottom])
@@ -170,10 +170,10 @@ class Player {
       }
       let range = this.getBoxRange(box);
 
-      for (var i = range.left; i <= range.right; i++) {
-        for (var j = range.top; j <= range.bottom; j++) {
+      for (let i = range.left; i <= range.right; i++) {
+        for (let j = range.top; j <= range.bottom; j++) {
           if (!isValidGridPos(i, j)) continue;
-          var block = blocks[i][j];
+          const block = blocks[i][j];
           if (this.colliding(box, block)) {
             if (isX) {
               this.pos.x = stepDir > 0 ? block.x - this.w : block.x + BLOCK_W;
@@ -205,7 +205,7 @@ class Player {
     const playerBent = this.bent;
 
     // -- VERTICAL OVERLAP --
-    var box = this.getBoundingBox();
+    let box = this.getBoundingBox();
 
     if (this.collidingEmpty(box, block)) {
       const blockIsTopOfPlayer =
@@ -242,10 +242,10 @@ class Player {
     // When preventing overlaps with 'block',
     // it may collide with the adjacent ones
     box = this.getBoundingBox();
-    var range = this.getBoxRange(box);
+    let range = this.getBoxRange(box);
 
-    for (var i = range.left; i <= range.right; i++) {
-      for (var j = range.top; j <= range.bottom; j++) {
+    for (let i = range.left; i <= range.right; i++) {
+      for (let j = range.top; j <= range.bottom; j++) {
         if (isValidGridPos(i, j) && this.colliding(box, blocks[i][j])) {
           // The new position collides with other block
 
@@ -285,7 +285,7 @@ class Player {
    * @param {p5.Vector} force
    */
   applyForce(force) {
-    var acc = p5.Vector.div(force, this.mass);
+    const acc = p5.Vector.div(force, this.mass);
     this.acc.add(acc);
   }
 

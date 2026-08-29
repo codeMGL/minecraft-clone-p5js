@@ -6,39 +6,37 @@ let inventory;
 // Hand object (selects blocks to break or place)
 let hand;
 let clouds = [];
-var player;
+let player;
 
-let changedBlocks = [];
-
-var gravity; // Gravity vector
+let gravity; // Gravity vector
 
 // If the game has started yet or not
-var initialized = false;
+let initialized = false;
 
 // Start and translate variables
-var cameraX, cameraY;
-var txt = "",
+let cameraX, cameraY;
+let txt = "",
   FPScount = 0;
 
 // Game mode
-var mode = "home";
+let mode = "home";
 
 // Save and load game buttons
-var saveGameBtn,
-  loadGameBtn;
+let saveGameBtn, loadGameBtn;
 
 // Seed input
-var seedInp;
-var seed;
+let seedInp;
+let seed;
 
-var lastMouseAction = 0;
+let lastMouseAction = 0;
 
 // Image variables
-var blockImages = {};
-var cloudImages = [];
-var crackImages = [];
-var logoImg, settingsImg, playImg, backImg;
-var playButton, settingsButton, backButton;
+let blockImages = {};
+let cloudImages = [];
+let crackImages = [];
+let logoImg, settingsImg, playImg, backImg;
+let playButton, settingsButton, backButton;
+let font;
 function preload() {
   // -- Images --
   blockImages["dirt"] = loadImage("images/dirt.jpeg");
@@ -50,7 +48,7 @@ function preload() {
   cloudImages.push(loadImage("images/cloud_1.png"));
   cloudImages.push(loadImage("images/cloud_2.png"));
 
-  for (var i = 0; i <= 9; i++) {
+  for (let i = 0; i <= 9; i++) {
     crackImages.push(loadImage("images/destroy_stage_" + i + ".png"));
   }
 
@@ -58,7 +56,6 @@ function preload() {
   settingsImg = loadImage("images/settings.png");
   playImg = loadImage("images/play.png");
   backImg = loadImage("images/back.png");
-
 
   // -- Font --
   font = loadFont("fonts/Pixel.ttf");
@@ -81,8 +78,8 @@ function setup() {
   textFont(font);
   gravity = createVector(0, GRAVITY_FORCE);
 
-  var startX = (WORLD_W * BLOCK_W) / 2;
-  var startY = (WORLD_H * BLOCK_W) / 2 - 10 * BLOCK_W;
+  const startX = (WORLD_W * BLOCK_W) / 2;
+  const startY = (WORLD_H * BLOCK_W) / 2 - 10 * BLOCK_W;
   player = new Player(startX, startY);
 
   // Create the inventory
@@ -92,7 +89,7 @@ function setup() {
   hand = new Hand();
 
   // Create the clouds
-  for (var j = 0; j < CLOUDS_COUNT; j++) {
+  for (let j = 0; j < CLOUDS_COUNT; j++) {
     clouds[j] = new Cloud();
   }
 
@@ -109,7 +106,7 @@ function setup() {
     mode = "settings";
   });
 
-  backButton = new ImageButton(backImg, width / 2, 380, 94, 30, () => {
+  backButton = new ImageButton(backImg, width / 2, 400, 94, 30, () => {
     mode = "home";
   });
 
@@ -121,12 +118,12 @@ function setup() {
   seedInp.style("font-size", "20px");
   seedInp.style("text-align", "center");
   seedInp.changed(() => {
-    var s = float(seedInp.value());
-    if (!isNaN(s) && !initialized) {
-      print("Seed has changed to", s);
-      randomSeed(s);
-      noiseSeed(s);
-      seed = s;
+    const newSeedValue = float(seedInp.value());
+    if (!isNaN(newSeedValue) && !initialized) {
+      seed = newSeedValue;
+      print("Seed has changed to", seed);
+      randomSeed(seed);
+      noiseSeed(seed);
     }
   });
   seedInp.hide();
@@ -137,6 +134,7 @@ function setup() {
   saveGameBtn.style("font-family", "inherit");
   saveGameBtn.style("font-size", "18px");
   saveGameBtn.style("cursor", "pointer");
+  saveGameBtn.position(width / 2 - 75, 280);
   saveGameBtn.mousePressed(() => {
     print("Save game button clicked");
   });
@@ -193,8 +191,7 @@ function drawGame() {
 
   // Drawing clouds at the "top" of the screen
   push();
-  // translate(0, -cameraY);
-  for (var c of clouds) {
+  for (let c of clouds) {
     c.update(cameraX);
     c.show();
   }
@@ -268,15 +265,14 @@ function drawSettings() {
   seedInp.show();
 
   // Save and Load game buttons
-  saveGameBtn.position(width / 2 - 75, 280);
   saveGameBtn.show();
 
   loadGameBtn.position(width / 2 - 75, 325);
   loadGameBtn.show();
 
   // Back button
-  backButton.setPosition(width / 2, 400);
   backButton.update();
+  backButton.show();
 }
 
 function windowResized() {
@@ -294,16 +290,16 @@ function windowResized() {
  */
 function drawWorld() {
   // Half the number of blocks drawn on each "chunk"
-  var halfW = floor(width / BLOCK_W / 2) + EXTRA_BLOCKS;
-  var halfH = floor(height / BLOCK_W / 2) + EXTRA_BLOCKS;
+  const halfW = floor(width / BLOCK_W / 2) + EXTRA_BLOCKS;
+  const halfH = floor(height / BLOCK_W / 2) + EXTRA_BLOCKS;
 
   const { i: playerI, j: playerJ } = worldToGrid(player.pos.x, player.pos.y);
 
-  for (var i = -halfW; i < halfW; i++) {
-    for (var j = -halfH; j < halfH; j++) {
-      var blockI = max(0, min(playerI + i, WORLD_W - 1));
-      var blockJ = max(0, min(playerJ + j, WORLD_H - 1));
-      blocks[blockI][blockJ].draw();
+  for (let i = -halfW; i < halfW; i++) {
+    for (let j = -halfH; j < halfH; j++) {
+      if (isValidGridPos(playerI + i, playerJ + j)) {
+        blocks[playerI + i][playerJ + j].draw();
+      }
     }
   }
 }
@@ -316,9 +312,7 @@ function keyPressed() {
 }
 
 function mousePressed() {
-  if (mode == "game") {
-    hand.actions();
-  } else if (mode == "home") {
+  if (mode == "home") {
     playButton.click();
     settingsButton.click();
   } else if (mode == "settings") {
@@ -331,18 +325,17 @@ function mousePressed() {
  */
 function createWorld() {
   // Initializing the 2D array
-  for (var i = 0; i < WORLD_W; i++) {
+  for (let i = 0; i < WORLD_W; i++) {
     blocks[i] = [];
-    for (var j = 0; j < WORLD_H; j++) {
+    for (let j = 0; j < WORLD_H; j++) {
       blocks[i][j] = new Block(i * BLOCK_W, j * BLOCK_W);
     }
   }
 
   // REFACTOR
-  var sX = WORLD_W;
-  var noiseScl = 0.1;
-  for (var i = 0; i < WORLD_W; i++) {
-    // Trees
+  const noiseScl = 0.1;
+  for (let i = 0; i < WORLD_W; i++) {
+    // -- Trees --
     // 'start': Y coordinate to start creating terrain (dirt)
     const startNoise = noise(i * noiseScl);
     const terrainNoise = 7;
@@ -352,40 +345,34 @@ function createWorld() {
 
     const noise1 = noise((5 + i) * noiseScl * 100);
     if (noise1 >= 0.7) {
-      var count = 1;
-      // Leaves
-      // Tree height goes from 3 to 6 blocks
-      for (var tree = round(random(3, 8)); tree >= 2; tree--) {
-        blocks[i][start - 1].type = "trunk";
-        blocks[i][start - tree].type = "trunk";
+      let count = 1;
+      // -- Leaves --
+      // Bottom trunk block
+      blocks[i][start - 1].type = "trunk";
+      // Tree height goes from 3 to 8 blocks
+      for (let tree = round(random(3, 8)); tree >= 2; tree--) {
         // Number of leaves at each size of the trunk
-        var num = min(pow(count, 2), 2);
-        for (var leaf = -num; leaf <= num; leaf++) {
-          var x = i + leaf;
-          if (i + leaf < 0) {
-            x = 0;
-          }
-          if (i + leaf > sX - 1) {
-            x = sX - 1;
-          }
+        const num = min(pow(count, 2), 2);
+        for (let leaf = -num; leaf <= num; leaf++) {
+          const x = max(0, min(i + leaf, WORLD_W - 1));
           blocks[x][start - tree].type = "leaf";
         }
         count++;
       }
     }
 
-    // Dirt
-    for (var rnd = start; rnd < WORLD_H; rnd++) {
+    // -- Dirt --
+    for (let rnd = start; rnd < WORLD_H; rnd++) {
       blocks[i][rnd].type = "dirt";
     }
 
-    // Stone
+    // -- Stone --
     const stoneStartIndex = WORLD_H / 2 + terrainNoise;
     const stoneNoise = 15;
-    var n = noise((15 + i) * noiseScl * 2);
+    let n = noise((15 + i) * noiseScl * 2);
     n = round(map(n, 0, 1, stoneStartIndex, stoneStartIndex + stoneNoise));
     // Draw a stone vertical line from 'n' to the bottom
-    for (var rnd2 = n; rnd2 < WORLD_H; rnd2++) {
+    for (let rnd2 = n; rnd2 < WORLD_H; rnd2++) {
       blocks[i][rnd2].type = "stone";
     }
   }

@@ -46,6 +46,9 @@ class ImageButton {
     this.drawingH = this.defaultH;
   }
 
+  /**
+   * Update hovering size and draw
+   */
   update() {
     if (this.mouseOver()) {
       cursor(HAND);
