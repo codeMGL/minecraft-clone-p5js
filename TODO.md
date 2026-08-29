@@ -1,13 +1,19 @@
 - [ ] Add Items to Inventory.items.types (and refactor names) instead of adding Item.type
-- [ ] Check how changedBlocks and storage works (should be called on Inventory.storeBlock and Inventory.placeBlock?)
+- [ ] Add localStorage to save and load the game
 - [ ] Fix clouds Paradax effect (and image colour)
 - [ ] Add sprint
 - [ ] Add mouse lateral keys
 - [ ] Make removed blocks float until they're stored (or if storage is full)
 - [ ] Don't let the hand break a far block if there's one near (break the nearest one first) 
 - [ ] Add a getBlockIndexFromCoordinates() function
-- [ ] Make the jump a force rather than velocity
+- [ ] Make the jump a force rather than velocity & make gravity more natural
 - [ ] Add water physics
+- [ ] Fix high jumping when placing vertically blocks while jumping (player should only jump if it touched the ground after the last jump)
+- [ ] Clean createWorld() generation (and add iron/ore and caves)
+- [ ] Make the player go down when bending in mid-air
+- [ ] Order functions and variables on sketch.js. And separate code on Player.js OPTIONAL
+- [x] Draw world edges if the player is near
+- [x] Scroll through the inventory
 - [x] Use PLAY y SETTINGS images as p5.Image and not html <image> tags
 - [x] Use dict to store block types: block["tierra"] = tr (block.tierra = tr)
 - [x] Improve visuals on broken blocks
