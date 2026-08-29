@@ -4,8 +4,15 @@ class Item {
     this.y = y;
     this.type = type;
   }
-  
+
   show() {
-    image(this.type, this.x + blockW * 0.25, this.y + blockW * 0.25, blockW * 0.5, blockW * 0.5)
+    imageMode(CORNER);
+    image(
+      blockImages[this.type],
+      this.x + BLOCK_W * 0.25,
+      this.y + BLOCK_W * 0.25,
+      BLOCK_W * 0.5,
+      BLOCK_W * 0.5,
+    );
   }
 }

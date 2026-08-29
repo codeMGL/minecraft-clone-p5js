@@ -188,14 +188,14 @@ function drawGame() {
 
   // Translate coordinates to draw the world (player, blocks and clouds)
   // Blocks are drawn at: player.pos +- width/2, so all the canvas is filled
-  cameraX = round(player.pos.x - width / 2);
-  cameraY = round(player.pos.y - height / 2);
+  cameraX = player.pos.x - width / 2;
+  cameraY = player.pos.y - height / 2;
 
   // Drawing clouds at the "top" of the screen
   push();
-  translate(0, -cameraY);
+  // translate(0, -cameraY);
   for (var c of clouds) {
-    c.restart();
+    c.update(cameraX);
     c.show();
   }
   pop();

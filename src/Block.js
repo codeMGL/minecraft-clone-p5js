@@ -14,23 +14,23 @@ class Block {
 
   draw() {
     if (!this.isEmpty) {
-      imageMode(CORNER);
-
+      
       // Draw the block
       var img = blockImages[this.type];
 
       if (this.type == "dirt") {
         const { i, j } = worldToGrid(this.x, this.y);
         // If the block above is air, draw a grass block instead
-        if (blocks[i][j - 1].isEmpty) {
+        if (j - 1 >= 0 && blocks[i][j - 1].isEmpty) {
           img = blockImages["grass"];
         }
       }
+      imageMode(CORNER);
       image(img, this.x, this.y, BLOCK_W, BLOCK_W);
 
       // Draw the crack images
       if (this.life < 1) {
-        var crackLevel = floor((1 - this.life) * 10);
+        var crackLevel = min(floor((1 - this.life) * 10), 9);
         image(crackImages[crackLevel], this.x, this.y, BLOCK_W, BLOCK_W);
       }
     }

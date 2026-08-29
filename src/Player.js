@@ -103,15 +103,11 @@ class Player {
     // Add accelaration
     this.vel.add(this.acc);
 
-    // Add horizontal velocity, if there are no collisions
-    if (this.vel.x != 0) {
-      this.checkHorizontalCollisions();
-    }
+    // Add horizontal velocity
+    this.checkCollisions("x");
 
-    // Add vertical velocity, if there are no collisions
-    if (this.vel.y != 0) {
-      this.checkVerticalCollisions();
-    }
+    // Add vertical velocity
+    this.checkCollisions("y");
 
     // Reset acceleration
     this.acc.set(0, 0);
@@ -141,7 +137,10 @@ class Player {
     var range = this.getBoxRange(box);
 
     for (var i = range.left; i <= range.right; i++) {
-      if (this.colliding(box, blocks[i][range.bottom])) {
+      if (
+        isValidGridPos(i, range.bottom) &&
+        this.colliding(box, blocks[i][range.bottom])
+      ) {
         return true;
       }
     }
@@ -149,75 +148,48 @@ class Player {
     return false;
   }
 
-  checkHorizontalCollisions() {
+  checkCollisions(axis) {
     // Check collisions step by step to prevent tunneling
-    for (
-      var vel = min(this.vel.x, BLOCK_W);
-      vel <= this.vel.x;
-      vel += BLOCK_W
-    ) {
-      var box = this.getBoundingBox();
-      box.left += vel;
-      box.right += vel;
-      var range = this.getBoxRange(box);
+    const isX = axis == "x";
+    const totalVel = this.vel[axis];
+    if (totalVel == 0) return;
+
+    let remainingVel = abs(totalVel);
+    const stepDir = Math.sign(totalVel);
+
+    while (remainingVel > 0) {
+      const step = min(remainingVel, BLOCK_W) * stepDir;
+
+      const box = this.getBoundingBox();
+      if (isX) {
+        box.left += step;
+        box.right += step;
+      } else {
+        box.top += step;
+        box.bottom += step;
+      }
+      let range = this.getBoxRange(box);
 
       for (var i = range.left; i <= range.right; i++) {
         for (var j = range.top; j <= range.bottom; j++) {
+          if (!isValidGridPos(i, j)) continue;
           var block = blocks[i][j];
-
           if (this.colliding(box, block)) {
-            if (this.vel.x > 0) {
-              // Moving to the right
-              this.pos.x = block.x - this.w;
+            if (isX) {
+              this.pos.x = stepDir > 0 ? block.x - this.w : block.x + BLOCK_W;
+              this.vel.x = 0;
+              this.currentSpeed = 0;
             } else {
-              // Moving to the left
-              this.pos.x = block.x + BLOCK_W;
+              this.pos.y = stepDir > 0 ? block.y : block.y + BLOCK_W + this.h;
+              this.vel.y = 0;
             }
-
-            this.vel.x = 0;
-            this.currentSpeed = 0;
             return;
           }
         }
       }
-      // If it doesn't hit any block
-      this.pos.x += this.vel.x;
-    }
-  }
-
-  checkVerticalCollisions() {
-    for (
-      var vel = min(BLOCK_W, this.vel.y);
-      vel <= this.vel.y;
-      vel += BLOCK_W
-    ) {
-      var box = this.getBoundingBox();
-      // Future positions before correcting collisions
-      box.top += vel;
-      box.bottom += vel;
-      var range = this.getBoxRange(box);
-
-      for (var i = range.left; i <= range.right; i++) {
-        for (var j = range.top; j <= range.bottom; j++) {
-          var block = blocks[i][j];
-
-          if (this.colliding(box, block)) {
-            if (this.vel.y > 0) {
-              // Falling
-              this.pos.y = block.y;
-            } else {
-              // Going up
-              this.pos.y = block.y + BLOCK_W + this.h;
-            }
-
-            this.vel.y = 0;
-            return;
-          }
-        }
-      }
-
-      // If it doesn't hit any block
-      this.pos.y += this.vel.y;
+      // If it doesn't hit any block, we update
+      this.pos[axis] += step;
+      remainingVel -= abs(step);
     }
   }
 
@@ -274,7 +246,7 @@ class Player {
 
     for (var i = range.left; i <= range.right; i++) {
       for (var j = range.top; j <= range.bottom; j++) {
-        if (this.colliding(box, blocks[i][j])) {
+        if (isValidGridPos(i, j) && this.colliding(box, blocks[i][j])) {
           // The new position collides with other block
 
           // Reset attributes

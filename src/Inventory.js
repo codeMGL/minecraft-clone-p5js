@@ -84,18 +84,23 @@ class Inventory {
     var blockType = block.type;
     block.type = null;
 
-    // Store block into the array
+    // -- Store block into the array --
+
+    // 1. Check first if there is a non full slot
+    for (const item of this.items) {
+      if (item.type == blockType && item.count < 9) {
+        item.type = blockType;
+        item.count++;
+        return;
+      }
+    }
+
+    // 2. No non full slots found, create one
     for (const item of this.items) {
       if (item.type == null) {
         item.type = blockType;
         item.count++;
-        break;
-      } else {
-        if (item.type == blockType && item.count < 9) {
-          item.type = blockType;
-          item.count++;
-          break;
-        }
+        return;
       }
     }
 

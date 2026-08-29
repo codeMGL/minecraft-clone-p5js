@@ -38,7 +38,7 @@ const MOUSE_ACTION_SLEEP_TIME = 100;
 // --- PHYSICS & OTHER VARIABLES ---
 
 // Clouds
-const CLOUDS_COUNT = 6;
+const CLOUDS_COUNT = 10;
 
 // Gravity
 const GRAVITY_FORCE = 30;

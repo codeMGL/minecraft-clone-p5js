@@ -58,10 +58,10 @@ class Hand {
    * Check for mouse actions: break block, place block
    */
   actions() {
-    var block = blocks[this.i][this.j];
 
     // If the mouse is inside the world
     if (isValidGridPos(this.i, this.j)) {
+      var block = blocks[this.i][this.j];
       if (mouseButton == LEFT && !block.isEmpty) {
         player.breakBlock(block);
       }
