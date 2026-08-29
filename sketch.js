@@ -20,11 +20,15 @@ var cameraX, cameraY;
 var txt = "",
   FPScount = 0;
 
-// Game variables
-var mode = "home",
-  saveGame,
-  seedInp,
-  loadGame;
+// Game mode
+var mode = "home";
+
+// Save and load game buttons
+var saveGameBtn,
+  loadGameBtn;
+
+// Seed input
+var seedInp;
 var seed;
 
 var lastMouseAction = 0;
@@ -33,21 +37,30 @@ var lastMouseAction = 0;
 var blockImages = {};
 var cloudImages = [];
 var crackImages = [];
-var title, settingsImg, playImg;
+var logoImg, settingsImg, playImg, backImg;
+var playButton, settingsButton, backButton;
 function preload() {
+  // -- Images --
   blockImages["dirt"] = loadImage("images/dirt.jpeg");
   blockImages["grass"] = loadImage("images/dirt_grass.jpeg");
   blockImages["stone"] = loadImage("images/stone.jpeg");
   blockImages["trunk"] = loadImage("images/trunk.jpeg");
   blockImages["leaf"] = loadImage("images/leaf.png");
+
   cloudImages.push(loadImage("images/cloud_1.png"));
   cloudImages.push(loadImage("images/cloud_2.png"));
-  title = loadImage("images/MY-CRAFT.png");
 
   for (var i = 0; i <= 9; i++) {
     crackImages.push(loadImage("images/destroy_stage_" + i + ".png"));
   }
 
+  logoImg = loadImage("images/logo.png");
+  settingsImg = loadImage("images/settings.png");
+  playImg = loadImage("images/play.png");
+  backImg = loadImage("images/back.png");
+
+
+  // -- Font --
   font = loadFont("fonts/Pixel.ttf");
 }
 
@@ -72,65 +85,43 @@ function setup() {
   var startY = (WORLD_H * BLOCK_W) / 2 - 10 * BLOCK_W;
   player = new Player(startX, startY);
 
-  // Creating the inventory
+  // Create the inventory
   inventory = new Inventory(6);
 
-  // Creating the hand object
+  // Create the hand object
   hand = new Hand();
 
-  // Creating the clouds
+  // Create the clouds
   for (var j = 0; j < CLOUDS_COUNT; j++) {
     clouds[j] = new Cloud();
   }
 
-  // DOM elements
-  playImg = select("#playB");
-  playImg
-    .position(width / 2, 400)
-    .hide()
-    .mouseOver(() => {
-      playImg.size(149 * 1.1, 51 * 1.1);
-    })
-    .mouseOut(() => {
-      playImg.size(149, 51);
-    })
-    .mousePressed(() => {
-      mode = "game";
-      playImg.hide();
-      settingsImg.hide();
-      if (!initialized) {
-        // Initialize game
-        createWorld();
-        initialized = true;
-      }
-    });
-  settingsImg = select("#settingsB");
-  settingsImg
-    .position(width / 2, 480)
-    .hide()
-    .mouseOver(() => {
-      if (mode != "settings") {
-        settingsImg.size(270 * 1.1, 51 * 1.1);
-      }
-    })
-    .mouseOut(() => {
-      if (mode != "settings") {
-        settingsImg.size(270, 51);
-      }
-    })
-    .mousePressed(() => {
-      settingsImg.size(270 * 0.9, 51 * 0.9);
-      playImg.hide();
-      mode = "settings";
-    });
-  playImg.show();
-  settingsImg.show();
+  // Create the button objects
+  playButton = new ImageButton(playImg, width / 2, 400, 149, 51, () => {
+    mode = "game";
+    if (!initialized) {
+      createWorld();
+      initialized = true;
+    }
+  });
 
-  saveGame = select("#game");
-  saveGame.center(LEFT, TOP);
-  seedInp = createInput(random(20) + "");
+  settingsButton = new ImageButton(settingsImg, width / 2, 480, 270, 51, () => {
+    mode = "settings";
+  });
+
+  backButton = new ImageButton(backImg, width / 2, 380, 94, 30, () => {
+    mode = "home";
+  });
+
+  // Seed input
+  seed = floor(random(1, 100000));
+  seedInp = createInput(seed + "");
+  seedInp.size(160, 32);
+  seedInp.style("font-family", "inherit");
+  seedInp.style("font-size", "20px");
+  seedInp.style("text-align", "center");
   seedInp.changed(() => {
-    var s = float(seed.value());
+    var s = float(seedInp.value());
     if (!isNaN(s) && !initialized) {
       print("Seed has changed to", s);
       randomSeed(s);
@@ -138,7 +129,29 @@ function setup() {
       seed = s;
     }
   });
-  loadGame = createInput();
+  seedInp.hide();
+
+  // Save Game button (for localStorage)
+  saveGameBtn = createButton("SAVE GAME");
+  saveGameBtn.size(150, 30);
+  saveGameBtn.style("font-family", "inherit");
+  saveGameBtn.style("font-size", "18px");
+  saveGameBtn.style("cursor", "pointer");
+  saveGameBtn.mousePressed(() => {
+    print("Save game button clicked");
+  });
+  saveGameBtn.hide();
+
+  // Load Game button (for localStorage)
+  loadGameBtn = createButton("LOAD GAME");
+  loadGameBtn.size(150, 30);
+  loadGameBtn.style("font-family", "inherit");
+  loadGameBtn.style("font-size", "18px");
+  loadGameBtn.style("cursor", "pointer");
+  loadGameBtn.mousePressed(() => {
+    print("Load game button clicked");
+  });
+  loadGameBtn.hide();
 }
 
 function draw() {
@@ -165,6 +178,10 @@ function draw() {
  * Main game loop, update objects and draw on the canvas
  */
 function drawGame() {
+  seedInp.hide();
+  saveGameBtn.hide();
+  loadGameBtn.hide();
+
   background("skyblue");
 
   push();
@@ -224,70 +241,52 @@ function drawGame() {
 function drawHome() {
   background(0);
   imageMode(CENTER);
-  var scl = 0.8;
-  image(title, width / 2, 180, 530 / scl, 125 / scl);
-  playImg.show();
-  settingsImg.position(width / 2, 480).show();
-  loadGame.hide();
-  saveGame.hide();
+  image(logoImg, width / 2, 180, 530, 125);
+
+  playButton.update();
+  settingsButton.update();
+
   seedInp.hide();
+  saveGameBtn.hide();
+  loadGameBtn.hide();
 }
 
 function drawSettings() {
-  // REFACTOR
-  background(0);
-  settingsImg.position(width / 2, 50);
+  background(20);
+
+  // Header image
+  imageMode(CENTER);
+  image(settingsImg, width / 2, 120, 270, 51);
+
+  // Seed section
   fill(255);
   textAlign(CENTER, CENTER);
-  textSize(32);
-  text("Seed:", 420, 98);
-  seedInp.position(560, 100).show();
-  if (initialized) {
-    seedInp.html("42");
-    var px = round(player.pos.x);
-    var py = round(player.pos.y);
-    // var game = `x${stX}y${stY}s${seed}x${px}y${py}
-    var game = `s${seed}x${px}y${py}
-`;
-    for (var i = 0; i < changedBlocks.length; i++) {
-      var block = changedBlocks[i];
-      var type = image2name(block.actualType);
-      game += `i${block.i}j${block.j}t${type}`;
-    }
-    game += `inv
-`;
-    for (var n = 0; n < inventory.length; n++) {
-      var name = image2name(inventory.items[n].type);
-      game += `${n}${name}${inventory.items[n].count}`;
-    }
-    seed = float(seedInp.value());
-    saveGame.html(game);
-  }
-  text("Load game:", 380, 153);
-  loadGame.position(560, 158).show();
-  text("Save game:", 380, 208);
-  saveGame.position(500, 190).show();
-  textAlign(CENTER, CENTER);
-  text("CLICK 'H' TO GO HOME", width / 2, 300);
+  textSize(26);
+
+  text("Seed:", width / 2 - 120, 230);
+  seedInp.position(width / 2 + 10, 235);
+  seedInp.show();
+
+  // Save and Load game buttons
+  saveGameBtn.position(width / 2 - 75, 280);
+  saveGameBtn.show();
+
+  loadGameBtn.position(width / 2 - 75, 325);
+  loadGameBtn.show();
+
+  // Back button
+  backButton.setPosition(width / 2, 400);
+  backButton.update();
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-}
-
-function image2name(img) {
-  if (img == t) {
-    return "t";
-  } else if (img == tr) {
-    return "tr";
-  } else if (img == h) {
-    return "h";
-  } else if (img == p) {
-    return "p";
-  } else if (img == null) {
-    return "n";
+  // Reset ImageButton default positions
+  if (playButton && settingsButton && backButton) {
+    playButton.setPosition(width / 2, 400);
+    settingsButton.setPosition(width / 2, 480);
+    backButton.setPosition(width / 2, 400);
   }
-  return "00";
 }
 
 /**
@@ -319,6 +318,11 @@ function keyPressed() {
 function mousePressed() {
   if (mode == "game") {
     hand.actions();
+  } else if (mode == "home") {
+    playButton.click();
+    settingsButton.click();
+  } else if (mode == "settings") {
+    backButton.click();
   }
 }
 
