@@ -6,6 +6,9 @@ The project is primarily inspired by **Minecraft** and **The Blockheads**, a 2D 
 
 My Craft takes the core idea of a block-based sandbox and adapts it into a simpler, custom implementation focused on understanding and learning how to perform procedural world generation and block interaction in Javascript.
 
+## HOW TO PLAY
+Click [here](https://codemgl.github.io/minecraft-clone-p5js) to test the latest version
+
 ## Inspiration
 
 My Craft is inspired by **Minecraft** and **The Blockheads**, particularly their block-based worlds, exploration, mining and building mechanics.
