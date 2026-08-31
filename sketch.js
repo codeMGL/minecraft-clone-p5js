@@ -39,26 +39,26 @@ let playButton, settingsButton, backButton;
 let font;
 function preload() {
   // -- Images --
-  blockImages["dirt"] = loadImage("images/dirt.jpeg");
-  blockImages["grass"] = loadImage("images/dirt_grass.jpeg");
-  blockImages["stone"] = loadImage("images/stone.jpeg");
-  blockImages["trunk"] = loadImage("images/trunk.jpeg");
-  blockImages["leaf"] = loadImage("images/leaf.png");
+  blockImages["dirt"] = loadImage("./images/dirt.jpeg");
+  blockImages["grass"] = loadImage("./images/dirt_grass.jpeg");
+  blockImages["stone"] = loadImage("./images/stone.jpeg");
+  blockImages["trunk"] = loadImage("./images/trunk.jpeg");
+  blockImages["leaf"] = loadImage("./images/leaf.png");
 
-  cloudImages.push(loadImage("images/cloud_1.png"));
-  cloudImages.push(loadImage("images/cloud_2.png"));
+  cloudImages.push(loadImage("./images/cloud_1.png"));
+  cloudImages.push(loadImage("./images/cloud_2.png"));
 
   for (let i = 0; i <= 9; i++) {
-    crackImages.push(loadImage("images/destroy_stage_" + i + ".png"));
+    crackImages.push(loadImage("./images/destroy_stage_" + i + ".png"));
   }
 
-  logoImg = loadImage("images/logo.png");
-  settingsImg = loadImage("images/settings.png");
-  playImg = loadImage("images/play.png");
-  backImg = loadImage("images/back.png");
+  logoImg = loadImage("./images/logo.png");
+  settingsImg = loadImage("./images/settings.png");
+  playImg = loadImage("./images/play.png");
+  backImg = loadImage("./images/back.png");
 
   // -- Font --
-  font = loadFont("fonts/Pixel.ttf");
+  font = loadFont("./fonts/Pixel.ttf");
 }
 
 function setup() {
@@ -266,6 +266,7 @@ function drawSettings() {
 
   // Save and Load game buttons
   saveGameBtn.show();
+  saveGameBtn.position(width / 2 - 75, 280);
 
   loadGameBtn.position(width / 2 - 75, 325);
   loadGameBtn.show();
